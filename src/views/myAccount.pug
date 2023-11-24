@@ -53,13 +53,16 @@ block content
 
 
     br
-    form(action='/account/logout?_method=DELETE' method="POST")
+    form(action='/logout?_method=DELETE' method="POST")
       button.btn.btn-danger(type='submit' class='btn btn-primary button') Abmelden
 
 
   script('../public/javascript/myAccountPUG.js') 
    
   script.
+
+    var USERID = !{JSON.stringify(USERID)};
+
 
 
 
@@ -75,13 +78,13 @@ block content
       console.log('Neues Passwort: ', neuesPasswort);
       console.log('Passwort wiederholen: ', passwortWiederholen);
 
-      fetch('/account/passworteandern', {
+      fetch('/passworteandern', {
         method: 'PUT',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ neuesPasswort, passwortWiederholen })
+        body: JSON.stringify({ neuesPasswort, passwortWiederholen, USERID })
       })
 
       .then(response => response.status)

@@ -1,12 +1,12 @@
 function logPasswords() {
-    event.preventDefault();  // Verhindert das Standardverhalten des Submit-Buttons
+    event.preventDefault(); // Verhindert das normale Verhalten des Formular-Submits
 
     var neuesPasswort = document.getElementById('neuesPasswort').value;
     var passwortWiederholen = document.getElementById('passwortWiederholen').value;
     console.log('Neues Passwort: ', neuesPasswort);
     console.log('Passwort wiederholen: ', passwortWiederholen);
 
-    fetch('/account/passworteandern', {
+    fetch('//passworteandern', {
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -20,6 +20,12 @@ function logPasswords() {
 }
 
 
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('passwortaendern').addEventListener('submit', function(event) {
+      logPasswords();
+    });
+  });
+  
 
 function handleResponse(status) {
     if (status === 200) {

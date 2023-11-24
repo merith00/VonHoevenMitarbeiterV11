@@ -1,23 +1,19 @@
 var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcrypt')
-const registerUser = require('../database/oracle').registerUser
-const putToCart = require('../database/oracle').putToCart
 const getfleachenFromUser = require('../database/oracle').getfleachenFromUser
 const getBestllungenFromUser = require('../database/oracle').getBestllungenFromUser
 const getFleachenFromUserBestellt = require('../database/oracle').getFleachenFromUserBestellt
 const registerUserWithFleachen = require('../database/oracle').registerUserWithFleachen
-const initiateOrder = require('../database/oracle').initiateOrder
-const KundendatenGET = require('../database/oracle').getKundendaten
+const getKundendaten = require('../database/oracle').getKundendaten
 const createBestellung = require('../database/oracle').createBestellung 
-const putToBestellung = require('../database/oracle').putToBestellung
 const getaufBearbeitenStellen = require('../database/oracle').getaufBearbeitenStellen
 const beiEinemKundenDieFleachenHinzufügen = require('../database/oracle').beiEinemKundenDieFleachenHinzufügen
 const beiMehrerenKundenDieFleachenHinzufügen = require('../database/oracle').beiMehrerenKundenDieFleachenHinzufügen
 const getKundendatenDieZuZiehenSind = require('../database/oracle').getKundendatenDieZuZiehenSind
 const getkundenDatenVomAusgewaehltenUser = require('../database/oracle').getkundenDatenVomAusgewaehltenUser
 const getUpdateDatenVomKunden = require('../database/oracle').getUpdateDatenVomKunden
-const kundenzumloeschen = require('../database/oracle').getKundenzumloeschen
+const kundenzumloeschen = require('../database/oracle').kundenzumloeschen
 
 
 
@@ -25,7 +21,6 @@ const kundenzumloeschen = require('../database/oracle').getKundenzumloeschen
 
 
 
-const mehrereKundenHochladen = require('../database/oracle').mehrereKundenHochladen
 const tokml = require('tokml');
 
 const getInformationsForGenerateKmlFile = require('../database/oracle').getInformationsForGenerateKmlFile
@@ -144,35 +139,24 @@ function readDataFromKMLFile(file, res,req, selectedOption, register) {
 
 
 
-//TODO: getCLUBMIT userID verbinden --> sonst ewiges Laden
 
 router.get('/', async function(req, res, next) {
-    if(req.isAuthenticated()){
-        const userID = req.user.id
-        var kundendaten = await KundendatenGET()
-        var kundendatenDieZuZiehenSind = await getKundendatenDieZuZiehenSind()
-        artikelNrFromCart = []
-        const kundendatenUebergabe = kundendaten
-        res.render('products', { title: 'Express', Daten: kundendatenUebergabe, Notification: getNoticitcation, DatenZuZiehen: kundendatenDieZuZiehenSind, login:true})
-        getNoticitcation = '';
-      }
-    res.render('', { title: 'Express',login:false});
+  if (req.isAuthenticated()) {
+      const userID = req.user.id
+      var kundendaten = await getKundendaten()
+      var kundendatenDieZuZiehenSind = await getKundendatenDieZuZiehenSind()
+      artikelNrFromCart = []
+      const kundendatenUebergabe = kundendaten
+      res.render('products', { title: 'Express', Daten: kundendatenUebergabe, Notification: getNoticitcation, DatenZuZiehen: kundendatenDieZuZiehenSind, login: true })
+      getNoticitcation = '';
+      return; // Frühzeitig aus der Funktion zurückkehren
+  }
+
+  res.render('', { title: 'Express', login: false });
 });
 
-router.post('/register', async (req,res) => {
 
-    try {
-     const hashedPassword = await bcrypt.hash(req.body.password, 10)
 
-     await registerUser(req.body.email, req.body.telefonnummer, hashedPassword,req.body.vorname, req.body.nachname,req.body.date,req.body.ort, req.body.plz, req.body.strasse, req.body.hausnummer)
-    
-     res.redirect('/account')
-
-    } catch (error) {
-    console.log(error)
-     res.sendStatus(500)   
-    }
-})
 
 function setKundenID(KundenID){
   theKundenID = KundenID;
@@ -225,14 +209,7 @@ router.get('/:category', async (req,res)=>{
     }
 })
 
-router.post('/', async (req,res)=>{
-  if(req.isAuthenticated()){
-     await initiateOrder(getKundenID())
-      res.sendStatus(100)
-  }else{
-    res.sendStatus(401)
-  }
-})
+
 
 async function InfoToKMLFile(infoProductIDs, res) {
   const geojson = {
@@ -397,30 +374,7 @@ router.put('/getaufBearbeitenStellen', async (req,res) => {
   }
 });
 
-router.put('/add', async (req,res) => {
-  if(req.isAuthenticated()){
-    userID = 7 // req.body.USERID
-    const productID = req.body.productid
-    const flaechenname = req.body.flaechenname
-    const dateValue = req.body.dateValue
-    const coordinates = req.body.coordinates
-    const imageElement = req.body.imageElement
-    const EminValue = req.body.EminValue
-    const MangatValue = req.body.MangatValue
-    const StickstoffValue = req.body.StickstoffValue
-    const fleachenartValue = req.body.fleachenart
-    const gettiefenValue = req.body.tiefenValue
 
-    try {
-      // Warte, bis putToCart vollständig abgeschlossen ist
-      await putToCart(userID, productID, flaechenname, dateValue, EminValue, MangatValue, StickstoffValue, coordinates, imageElement, fleachenartValue, gettiefenValue);
-      res.send(200);
-    } catch (error) {
-      console.error('Fehler:', error);
-      res.status(500).send('Fehler beim Hinzufügen zum Warenkorb.');
-    }
-  }
-});
 
 router.put('/gerateAllInformations', async (req,res) => {
   if(req.isAuthenticated()){
@@ -435,9 +389,9 @@ router.put('/deleteCustomer', async (req,res) => {
       const { kundeloeschen} = req.body;
       await kundenzumloeschen(kundeloeschen)
       res.sendStatus(200)
-      //handleResponse(400,res)
       console.log(kundeloeschen)
     }catch(error){
+      console.log(error)
       res.sendStatus(404)
     }
   }
@@ -788,29 +742,8 @@ async function createTheBestellung(userid){
 }
 
 
-async function addToBestellung(requestData){
-  const userID = requestData.USERID
-  const productID = requestData.productid
-  const flaechenname = requestData.flaechenname
-  const dateValue = requestData.dateValue
-  const coordinates = requestData.coordinates
-  const imageElement = requestData.imageElement
-  const EminValue = requestData.EminValue
-  const MangatValue = requestData.MangatValue
-  const StickstoffValue = requestData.StickstoffValue
-  const fleachenartValue = requestData.fleachenart
-  const gettiefenValue = requestData.tiefenValue
-  const selectedOption = requestData.selectedOption
 
-  try {
-    await putToBestellung(selectedOption, userID, productID, flaechenname, dateValue, EminValue, MangatValue, StickstoffValue, coordinates, imageElement, fleachenartValue, gettiefenValue);
-  } catch (error) {
-    console.error('Fehler:', error);
-  }
-
-
-}
-
+//TODO: auf 200 setzen 
 function handleResponse(status, res, userID) {
   try{
     if (status === 200) {
@@ -821,15 +754,6 @@ function handleResponse(status, res, userID) {
         div.appendChild(p);
         document.body.appendChild(div);
         location.reload()
-    } else if (status === 300) {
-        const div = document.createElement('div');
-        div.classList.add('notificationgreen');
-        const p = document.createElement('p');
-        p.textContent = 'Produkt erfolgreich hinzugefügt';
-        div.appendChild(p);
-        document.body.appendChild(div);
-        location.reload()
-        window.location.href = '/products'; // Ändere die URL entsprechend deiner Seite 
     } else if(status === 400){
       res.redirect('/products');
     } else if(status === 123){

@@ -16,7 +16,6 @@ const methodOverride = require('method-override')
 
 var indexRouter = require('./routes');
 var usersRouter = require('./routes/users');
-var accountRouter = require('./routes/account');
 var cartRouter = require('./routes/cart');
 var productsRouter = require('./routes/products');
 
@@ -47,7 +46,6 @@ app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/account', accountRouter);
 app.use('/cart', cartRouter);
 app.use('/products', productsRouter);
 
