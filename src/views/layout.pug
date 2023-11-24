@@ -1,0 +1,64 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title Bodenproben VH
+    //- Link zu Bootstrap CSS
+    link(href='https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', rel='stylesheet')
+    link(rel='stylesheet' href='https://unpkg.com/leaflet@1.7.1/dist/leaflet.css')
+    link(rel='stylesheet' href='https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css')
+    link(rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css')
+    link(href='https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', rel='stylesheet')
+    link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css')
+
+
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    
+    script(src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js")
+    script(src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js")
+
+
+
+
+
+
+  body.full-height
+    //- Navbar
+    nav.navbar.navbar-expand-lg.navbar-light.bg-light
+      .container-fluid
+        a.navbar-brand(href='#')
+          .row
+            .col-md-2
+              img.img-fluid.align-self-stretch(src='/images/bodenprobenvh.gif', alt='Bild', style='width: 100px; height: auto;')
+            .h5.font-weight-bold(style='margin-bottom: 0px;') Bodenproben von Höfen
+        button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNav', aria-controls='navbarNav', aria-expanded='false', aria-label='Toggle navigation')
+          span.navbar-toggler-icon
+        .collapse.navbar-collapse#navbarNav
+          ul.navbar-nav.ml-auto
+            //- Hier wird ml-auto verwendet
+            li.nav-item
+              a.nav-link.h5.font-weight-bold(style='margin-bottom: 0px;', href='/cart') Kartenansicht
+            li.nav-item
+              a.nav-link.h5.font-weight-bold(style='margin-bottom: 0px;', href='/products') Kundenansicht
+            li.nav-item
+              if(!login)
+                a.nav-link.h5.font-weight-bold(style='margin-bottom: 0px;', href='/' onClick='loginTrue()') Anmelden
+              if(login)
+                a.nav-link.h5.font-weight-bold(style='margin-bottom: 0px;', href='/' onClick='loginTrue()') Konto
+    block content 
+    footer.primary-backgroundcolor.text-white.text-center.py-2
+      | &copy; 2023 Bodenproben von Höfen
+    //- Link zu Bootstrap JavaScript (optional)
+    script(src='https://code.jquery.com/jquery-3.6.0.min.js')
+    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js')
+      
+    
+
+
+
+
+
+        
+    

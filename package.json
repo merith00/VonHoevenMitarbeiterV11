@@ -1,0 +1,43 @@
+{
+  "name": "myapp",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/bin/www",
+    "devStart": "nodemon src/bin/www"
+  },
+  "dependencies": {
+    "@mapbox/togeojson": "^0.16.2",
+    "@tmcw/togeojson": "^5.8.1",
+    "bcrypt": "^5.1.0",
+    "canvas": "^2.11.2",
+    "cookie-parser": "~1.4.4",
+    "dateformat": "^5.0.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "express-fileupload": "^1.4.0",
+    "express-flash": "^0.0.2",
+    "express-session": "^1.17.3",
+    "http-errors": "~1.6.3",
+    "jszip": "^3.10.1",
+    "method-override": "^3.0.0",
+    "morgan": "~1.9.1",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.3",
+    "nodemailer": "^6.9.4",
+    "oracledb": "https://github.com/oracle/node-oracledb/releases/download/v5.5.0/oracledb-src-5.5.0.tgz",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
+    "proj4": "^2.9.0",
+    "pug": "2.0.0-beta11",
+    "shapefile": "^0.6.2",
+    "shp": "^0.0.1",
+    "tokml": "^0.4.0",
+    "unzipper": "^0.10.14",
+    "xmldom": "^0.6.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.20"
+  }
+}

@@ -1,0 +1,148 @@
+extends layout
+
+block content
+  .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor
+    h1 Kontoinformationen
+    form
+      h3 Pers&ouml;nliche Informationen
+      .form-row.h5
+        .form-group.col-md-2
+          label(for='anrede') Anrede
+          input#anrede.form-control(type='text' value=MitarbeiterDaten[0].ANREDE readonly='')
+        .form-group.col-md-2
+          label(for='id') ID
+          input#id.form-control(type='text' value=MitarbeiterDaten[0].PERSONALNUMMER readonly='')
+        .form-group.col-md-2
+          label(for='vorname') Vorname
+          input#vorname.form-control(type='text' value=MitarbeiterDaten[0].VORNAME readonly='')
+        .form-group.col-md-2
+          label(for='nachname') Nachname
+          input#nachname.form-control(type='text' value=MitarbeiterDaten[0].NACHNAME readonly='')
+        .form-group.col-md-2
+          label(for='telefon') Telefon
+          input#telefon.form-control(type='text' value=MitarbeiterDaten[0].TELEFONNUMMER readonly='')
+        .form-group.col-md-2
+          label(for='email') Email
+          input#email.form-control(type='text' value=MitarbeiterDaten[0].E_MAIL readonly='')
+
+      h3 Adresse
+      .form-row.h5
+        .form-group.col-md-2
+          label(for='ort') Ort
+          input#ort.form-control(type='text' value=MitarbeiterDaten[0].ORT readonly='')
+        .form-group.col-md-2
+          label(for='postleitzahl') Postleitzahl
+          input#postleitzahl.form-control(type='text' value=MitarbeiterDaten[0].POSTLEITZAHL readonly='')
+        .form-group.col-md-2
+          label(for='strasse') Stra&szlig;e
+          input#strasse.form-control(type='text' value=MitarbeiterDaten[0].STRASSE readonly='')
+        .form-group.col-md-2
+          label(for='hausnummer') Hausnummer
+          input#hausnummer.form-control(type='text' value=MitarbeiterDaten[0].HAUSNUMMER readonly='')
+
+      h3 Passwort &auml;ndern
+      .form-row.h5
+        .form-group.col-md-6
+          label(for='neuesPasswort') Neues Passwort
+          input#neuesPasswort.form-control(type='password' placeholder='Neues Passwort')
+        .form-group.col-md-6
+          label(for='passwortWiederholen') Passwort wiederholen
+          input#passwortWiederholen.form-control(type='password' placeholder='Passwort wiederholen')
+      button.btn.btn-primary(type='submit' class='btn btn-primary button float-right' onClick='logPasswords()') Passwort &auml;ndern
+
+
+
+    br
+    form(action='/account/logout?_method=DELETE' method="POST")
+      button.btn.btn-danger(type='submit' class='btn btn-primary button') Abmelden
+
+
+  script('../public/javascript/myAccountPUG.js') 
+   
+  script.
+
+
+
+
+    
+
+    function logPasswords() {
+
+      event.preventDefault();  // Verhindert das Standardverhalten des Submit-Buttons
+
+      var neuesPasswort = document.getElementById('neuesPasswort').value;
+      var passwortWiederholen = document.getElementById('passwortWiederholen').value;
+      console.log('Neues Passwort: ', neuesPasswort);
+      console.log('Passwort wiederholen: ', passwortWiederholen);
+
+      fetch('/account/passworteandern', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ neuesPasswort, passwortWiederholen })
+      })
+
+      .then(response => response.status)
+      .then(status => handleResponse(status))
+      .catch(error => console.error('Error:', error));
+    }
+
+
+
+    function handleResponse(status) {
+      if (status === 200) {
+        showSuccessNotification('Passwort geändert');
+      } else if (status === 404) {
+        showNotification('Falsches Passwort eingegeben');
+      }
+    }
+
+    function showNotification(message) {
+      var notificationOverlay = document.createElement('div');
+      notificationOverlay.className = 'notification-overlay';
+      var notificationred = document.createElement('div');
+      notificationred.className = 'notificationred';
+
+      var p = document.createElement('p');
+      p.textContent = message;
+
+      var closeButton = document.createElement('button');
+      closeButton.textContent = 'Schließen';
+      closeButton.className = 'btn btn-secondary btn-sm'; // Stile für den Button hinzufügen
+      closeButton.addEventListener('click', function() {
+        document.body.removeChild(notificationOverlay);
+        location.reload(); // Hier die Seite neu laden
+      });
+
+      notificationred.appendChild(p);
+      notificationred.appendChild(closeButton);
+      notificationOverlay.appendChild(notificationred);
+      document.body.appendChild(notificationOverlay);
+    }
+
+
+    function showSuccessNotification(message) {
+      var notificationOverlay = document.createElement('div');
+      notificationOverlay.className = 'notification-overlay';
+      var notificationGreen = document.createElement('div');
+      notificationGreen.className = 'notificationgreen';
+
+      var p = document.createElement('p');
+      p.textContent = message;
+
+      var closeButton = document.createElement('button');
+      closeButton.textContent = 'Schließen';
+      closeButton.className = 'btn btn-secondary btn-sm'; // Stile für den Button hinzufügen
+      closeButton.addEventListener('click', function() {
+        document.body.removeChild(notificationOverlay);
+        location.reload(); // Hier die Seite neu laden
+      });
+
+      notificationGreen.appendChild(p);
+      notificationGreen.appendChild(closeButton);
+      notificationOverlay.appendChild(notificationGreen);
+      document.body.appendChild(notificationOverlay);
+    }
+

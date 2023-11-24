@@ -1,0 +1,69 @@
+extends layout
+
+block content
+
+  if Notification
+    .notification-overlay
+        .notificationred
+            p= Notification
+    script.
+        setTimeout(function() {
+            var notificationOverlay = document.querySelector(".notification-overlay");
+            notificationOverlay.parentNode.removeChild(notificationOverlay);
+        }, 3000);
+
+  if (errors && errors.length > 0)
+    each error in errors
+      .alert.alert-danger= error
+  //- Hauptinhalt
+  .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor
+    div(style='width: 100%;').row
+      //- Linker Teil mit dem Bild
+      .col-md-6.d-flex.align-items-center
+        .container.vertical-center
+          img(style='width: 80%;', src='/images/bodenprobenvh.gif', alt='Bild', class='img-fluid')
+      //- Rechter Teil mit der Anmeldemöglichkeit
+      .col-md-6.d-flex.align-items-center
+        .container.vertical-center
+          //- Anmeldeformular hier
+          form(style='width: 80%;', class='p-4 rounded secondary-color primary-backgroundcolor', action='/account/login', method='post')
+            h2.text-center.mx-auto Anmelden
+            .form-group
+              label(for='email') E-Mail
+              input(type='email' name='email' placeholder='E-Mail' required class='form-control')
+            .form-group
+              label(for='password') Passwort
+              div.input-group
+                input(type='password' class='form-control' name='password' placeholder='Passwort' required id='password')
+                div.input-group-append
+                  span.input-group-text(style='cursor: pointer;', onclick='togglePassword()')
+                    i#togglePassword.fa.fa-eye
+            button(type='submit', class='btn btn-primary button float-right') Anmelden
+
+    div#passwordErrorPopup.modal.fade
+      .modal-dialog.modal-dialog-centered
+        .modal-content
+          .modal-header
+            h5.modal-title Falsches Passwort
+            button.close(type='button', data-dismiss='modal', aria-label='Close')
+              span(aria-hidden='true') &times;
+          .modal-body
+            p Die eingegebene E-Mail oder das Passwort ist falsch. Bitte versuchen Sie es erneut.
+          .modal-footer
+            button.btn.btn-secondary(type='button', data-dismiss='modal') Schließen
+
+  script.
+    function togglePassword() {
+      var passwordInput = document.getElementById('password');
+      var toggleIcon = document.getElementById('togglePassword');
+
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+      }
+    }

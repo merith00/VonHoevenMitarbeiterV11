@@ -1,0 +1,722 @@
+extends layout
+
+block content
+    .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor
+        .row(style="width: 100%; height:100%")
+            //- Linker Teil mit dem Bild (10% Breite)
+            .col-md-1.custom-left-col.d-flex.align-items-center
+                table.table.table-bordered
+                    thead
+                        tr.primary-backgroundcolor
+                            th.secondary-color(colspan="2", scope="col") Filter
+                    tbody
+                    tr.table-light
+                        td  <sup>N</sup><sub>min</sub>
+                        td
+                            input(type='checkbox', name='filterNmin', value='1', checked) 
+                    tr.table-light
+                        td  <sup>S</sup><sub>min</sub>
+                        td
+                            input(type='checkbox', name='filterSmin', value='1', checked) 
+                    tr.table-light
+                        td Humus
+                        td
+                            input(type='checkbox', name='filterHumus', value='1', checked) 
+                    tr.table-light
+                        td C/N
+                        td       
+                            input(type='checkbox', name='filterCN', value='1', checked)
+            //- Rechter Teil mit der Karte (90% Breite)
+            .col-md-11.d-flex.align-items-center
+                .container-fluid.vertical-center
+                    div#map(style='width: 100%; height: 95%')
+    
+    #exampleModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
+        .modal-dialog.modal-dialog-centered(role='document')
+            .modal-content.neutral-backgroundcolor
+                .modal-header
+                    h5#exampleModalLongTitle.modal-title.text-white Flächeninformationen
+                    button.close(type='button' data-dismiss='modal' aria-label='Close')
+                        span(aria-hidden='true') &times;
+                // Modal-Body
+                .modal-body
+                    table.table.table-borderless.table-fleachenInformationene
+                        tbody
+                            tr.font-weight-bold
+                                td
+                                    | Kundennummer: 
+                                td
+                                    a(style='color:#58634C; cursor: pointer;').nav-linkTableA#kundenNr(onClick="kundenAnsehen(document.getElementById('kundenNr').textContent)")
+                            tr.font-weight-bold
+                                td
+                                    | Probennummer: 
+                                td
+                                    span#probenNr
+                            tr.font-weight-bold
+                                td
+                                    | Beproben ab: 
+                                td
+                                    span#beprobenAb
+                            tr.font-weight-bold
+                                td
+                                    | Nutzung: 
+                                td
+                                    span#nutzung
+                            tr.font-weight-bold
+                                td
+                                    | Schlag Bezeichnung: 
+                                td
+                                    span#schlagBz
+                            tr.font-weight-bold 
+                                td
+                                    | Probenart 
+                                td 
+                                    table 
+                                        tr
+                                            td 
+                                                span#nminGzogen
+
+                                            td 
+                                                span#sminGzogen
+
+                                            td 
+                                                span#humusGzogen
+
+                                            td 
+                                                span#cnGzogen
+                            tr.font-weight-bold 
+                                td
+                                    | Flächengröße 
+                                td
+                                    table 
+                                        tr
+                                            td 
+                                                span#fleachenGroesse
+
+                                            td  h 
+                                    
+
+                .modal-footer
+                    button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="kmlerstellen()", class='btn btn-primary button float-right bestellbutton') KML erstellen
+
+
+    #ModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
+        .modal-dialog.modal-dialog-centered(role='document')
+            .modal-content.neutral-backgroundcolor
+                .modal-header
+                    h5#exampleModalLongTitle.modal-title.text-white Flächeninformationen
+                    button.close(type='button' data-dismiss='modal' aria-label='Close')
+                        span(aria-hidden='true') &times;
+                // Modal-Body
+                .modal-body
+                    button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="kmlerstellenMehrere()", class='btn btn-primary button float-right bestellbutton') KML erstellen
+                    button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalProbeBearbeitet' id='updatebutton', class='btn btn-primary button float-right bestellbuttont' style='margin-top: 5px; margin-right: 15px') Proben gezogen
+
+
+    #ModalProbeBearbeitet.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
+        .modal-dialog.modal-dialog-centered(role='document')
+            .modal-content.neutral-backgroundcolor
+                .modal-header
+                    h5#exampleModalLongTitle.modal-title.text-white Probe bearbeitet am:
+                    button.close(type='button' data-dismiss='modal' aria-label='Close')
+                        span(aria-hidden='true') &times;
+                    // Modal-Body
+                .modal-body 
+                    .input-group.date(data-provide="datepicker")
+                        input#datepicker(type="date" class="form-control")
+                        .input-group-addon
+                            span.glyphicon.glyphicon-th
+                // Modal-Body
+                .modal-body
+                    button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="fleachwurdenBearbeitet(document.getElementById('datepicker').value"+","+dieUserID+")", class='btn btn-primary button float-right bestellbutton') Proben gezogen
+        div#loadingIndicator(style='display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); color: white; text-align: center; line-height: 100vh;')
+            div.spinner-border(text='loading')         
+    script.
+
+        const today = new Date();
+        const todayFormatted = today.toISOString().split('T')[0];
+        document.getElementById('datepicker').value = todayFormatted;
+
+
+        function fleachwurdenBearbeitet(dateValue,userID) {
+            const selectedProducts = [];
+
+            for (let index = 0; index < includedFlaechen.length; index++) {
+                var EminValue = 'n';
+                var MangatValue = 'n';
+                var StickstoffValue = 'n';
+                var CheckboxCnValue = 'n';
+
+                if (includedFlaechen[index].nmin === 1) {
+                 MangatValue = 'j';
+                } 
+        
+                if (sminGzogen === 1) {
+                EminValue = 'j';
+                } 
+        
+                if (humusGzogen === 1) {
+                StickstoffValue = 'j';
+                }
+        
+                if (cnGzogen === 1) {
+                CheckboxCnValue = 'j';
+                }
+
+        
+        
+                //TODO HIER EINTRAGEN WENN INPUT GEÄNDERT WIRD DATE MUSS AUCH!!!
+            
+                    const productInfo = {
+                        productId: includedFlaechen[index].flaechenID,
+                        //flaechenname: flaechennameValue,
+                        dateValue: dateValue,
+                        NminValue: MangatValue,
+                        SminValue: EminValue,
+                        HumusValue: StickstoffValue,
+                        CnValue: CheckboxCnValue
+                    };
+
+                    selectedProducts.push(productInfo)
+            }
+
+            document.getElementById('loadingIndicator').style.display = 'block';
+            
+            fetch('/products/fleachenAufBearbeitetStellen', {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ productIDs: selectedProducts })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Anfrage war erfolgreich');
+                } else {
+                    console.error('Fehler beim Aktualisieren der Flächen');
+                }
+            })
+            .catch(error => {
+                console.error('Fehler beim Ausführen der Fetch-Anfrage:', error);
+            })
+            .finally(() => {
+                window.location.reload();
+            });
+        }
+
+
+        function handleResponse(status) {
+            console.log(status)
+            if (status === 100) {
+                location.reload()
+                window.location.href = '/cart'; // Ändere die URL entsprechend deiner Seite 
+            } 
+        }
+
+
+        function kundenAnsehen(kundenummer) {
+            var link = document.getElementById('kundenNr');
+            link.href = '/products/' + kundenummer;
+            link.click();  // Diese Zeile wird den Link programmatisch anklicken
+        }
+
+
+        var coordinatesArray = !{JSON.stringify(Fleachen)};
+        var map = L.map('map').setView([52.849226, 7.913939], 13);
+
+        // OpenStreetMap Layer hinzufügen
+        L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains:['mt0','mt1','mt2','mt3'],
+            attribution: '© Google'
+        }).addTo(map);
+
+
+        //Ausschnitt der Karte festlegen
+        if(coordinatesArray.length > 0){ 
+            var minLat = Number.POSITIVE_INFINITY;
+            var maxLat = Number.NEGATIVE_INFINITY;
+            var minLng = Number.POSITIVE_INFINITY;
+            var maxLng = Number.NEGATIVE_INFINITY;
+
+            for (var i = 0; i < coordinatesArray.length; i++) {
+                var latitude = parseFloat(coordinatesArray[i].FKOORDINATENIDLAT);
+                var longitude = parseFloat(coordinatesArray[i].FKOORDINATENIDLNG);
+
+                minLat = Math.min(minLat, latitude);
+                maxLat = Math.max(maxLat, latitude);
+                minLng = Math.min(minLng, longitude);
+                maxLng = Math.max(maxLng, longitude);
+            }
+
+            var centerLat = (minLat + maxLat) / 2;
+            var centerLng = (minLng + maxLng) / 2;
+
+            var bounds = L.latLngBounds(L.latLng(minLat, minLng), L.latLng(maxLat, maxLng));
+            map.fitBounds(bounds);
+        }
+
+        var flaechenID = 0;
+        var coordinates = []; // Hier werden die Koordinaten für die aktuelle Fläche gesammelt
+
+        const filterNminValue = document.querySelector('[name="filterNmin"]');
+        const filterminValue = document.querySelector('[name="filterSmin"]');
+        const filterHumusValue = document.querySelector('[name="filterHumus"]');
+        const filterCNValue = document.querySelector('[name="filterCN"]');
+
+        filterNminValue.addEventListener('change', function() {
+                updateFunction();
+        });
+
+        filterminValue.addEventListener('change', function() {
+                updateFunction();
+        });
+
+        filterHumusValue.addEventListener('change', function() {
+                updateFunction();
+        });
+
+        filterCNValue.addEventListener('change', function() {
+                updateFunction();
+        });
+
+        updateFunction();
+
+
+        function formatDate(dateString) {
+            var date = new Date(dateString);
+            var day = date.getDate();
+            var month = date.getMonth() + 1; // Monate sind von 0 bis 11
+            var year = date.getFullYear();
+
+            return (day < 10 ? '0' : '') + day + '.' + (month < 10 ? '0' : '') + month + '.' + year;
+        }
+
+        function updateFunction() {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polygon) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            var coordinates = [];
+            var flaechenID = 0;
+            var infos;
+            var colorArt = '#b9f700';
+
+            if (filterNminValue.checked) {
+                coordinatesArray.forEach(function (fleachenStueck) {
+                    if (flaechenID === fleachenStueck.ARTIKELNR) {
+                        coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
+                        infos = {
+                            probenNr: fleachenStueck.ARTIKELNR,
+                            kundenNr: fleachenStueck.KUNDENNUMMER,
+                            beprobenAb: fleachenStueck.STARTDATUM,
+                            nutzung: fleachenStueck.FLEACHENART,
+                            schlagBz: fleachenStueck.FLAECHENNAME,
+                            nminGzogen: fleachenStueck.enthält_nmin,
+                            sminGzogen: fleachenStueck.enthält_smin,
+                            humusGzogen: fleachenStueck.enthält_humus,
+                            cnGzogen: fleachenStueck.enthält_cn,
+                        };
+
+                        if (fleachenStueck.PROBENSTATUS === 1) {
+                            colorArt = 'blue';
+                        } else {
+                            colorArt = '#b9f700';
+                        }
+                    } else {
+                        if (coordinates.length > 2) {
+                            var polygon = L.polygon(coordinates, {
+                                color: colorArt,
+                                fillColor: colorArt,
+                                fillOpacity: 0.4,
+                                info: infos,
+                            }).addTo(map);
+
+                            var area = L.GeometryUtil.geodesicArea(polygon.getLatLngs()[0]) / 10000;
+                            area = area.toFixed(2);
+
+                            polygon.on('click', function () {
+                                var info = this.options.info;
+                                var datum = formatDate(info.beprobenAb);
+
+                                if (info.nminGzogen === 1) {
+                                    info.nminGzogen = 'Nmin ';
+                                } else {
+                                    info.nminGzogen = '';
+                                }
+
+                                if (info.sminGzogen === 1) {
+                                    info.sminGzogen = 'Smin ';
+                                } else {
+                                    info.sminGzogen = '';
+                                }
+
+                                if (info.humusGzogen === 1) {
+                                    info.humusGzogen = 'Humus ';
+                                } else {
+                                    info.humusGzogen = '';
+                                }
+
+                                if (info.cnGzogen === 1) {
+                                    info.cnGzogen = 'C/N ';
+                                } else {
+                                    info.cnGzogen = '';
+                                }
+
+                                document.getElementById('probenNr').textContent = info.probenNr;
+                                document.getElementById('kundenNr').textContent = info.kundenNr;
+                                document.getElementById('beprobenAb').textContent = datum;
+                                document.getElementById('nutzung').textContent = info.nutzung;
+                                document.getElementById('schlagBz').textContent = info.schlagBz;
+                                document.getElementById('nminGzogen').textContent = info.nminGzogen;
+                                document.getElementById('sminGzogen').textContent = info.sminGzogen;
+                                document.getElementById('humusGzogen').textContent = info.humusGzogen;
+                                document.getElementById('cnGzogen').textContent = info.cnGzogen;
+                                document.getElementById('fleachenGroesse').textContent = area;
+                                $('#exampleModalCenter').modal('show');
+                            });
+                        }
+                        flaechenID = fleachenStueck.ARTIKELNR;
+                        coordinates = [
+                            [fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG],
+                        ];
+                        infos = '';
+                    }
+                });
+
+                // Fehlende Teile am Ende der Funktion
+                if (coordinates.length > 2) {
+                    var polygon = L.polygon(coordinates, {
+                        color: colorArt,
+                        fillColor: colorArt,
+                        fillOpacity: 0.4,
+                        info: infos,
+                    }).addTo(map);
+
+                    polygon.on('click', function () {
+                        var info = this.options.info;
+                        var datum = formatDate(info.beprobenAb);
+
+                        if (info.nminGzogen === 1) {
+                            info.nminGzogen = 'Nmin ';
+                        } else {
+                            info.nminGzogen = '';
+                        }
+
+                        if (info.sminGzogen === 1) {
+                            info.sminGzogen = 'Smin ';
+                        } else {
+                            info.sminGzogen = '';
+                        }
+
+                        if (info.humusGzogen === 1) {
+                            info.humusGzogen = 'Humus ';
+                        } else {
+                            info.humusGzogen = '';
+                        }
+
+                        if (info.cnGzogen === 1) {
+                            info.cnGzogen = 'C/N ';
+                        } else {
+                            info.cnGzogen = '';
+                        }
+
+                        document.getElementById('probenNr').textContent = info.probenNr;
+                        document.getElementById('kundenNr').textContent = info.kundenNr;
+                        document.getElementById('beprobenAb').textContent = datum;
+                        document.getElementById('nutzung').textContent = info.nutzung;
+                        document.getElementById('schlagBz').textContent = info.schlagBz;
+                        document.getElementById('nminGzogen').textContent = info.nminGzogen;
+                        document.getElementById('sminGzogen').textContent = info.sminGzogen;
+                        document.getElementById('humusGzogen').textContent = info.humusGzogen;
+                        document.getElementById('cnGzogen').textContent = info.cnGzogen;
+                        document.getElementById('fleachenGroesse').textContent = area;
+                        $('#exampleModalCenter').modal('show');
+                    });
+                }
+
+                coordinates = [];
+                flaechenID = 0;
+            }
+        
+            /*else if(!filterNminValue.checked && filterminValue.checked &&  filterHumusValue.checked &&  filterCNValue.checked ){
+                coordinatesArray.forEach(function (fleachenStueck) {
+                    if(fleachenStueck[5]==1 || fleachenStueck[6]==1 || fleachenStueck[7]==1){
+                        if (flaechenID === fleachenStueck[0]) {
+                            coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
+                        } else {
+                            if (coordinates.length > 2) {
+                                L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                            }
+                            flaechenID = fleachenStueck[0];
+                            coordinates = [[fleachenStueck[1], fleachenStueck[2]]];
+                        }
+                    }
+                });
+                if (coordinates.length > 2) {
+                    L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                }
+                coordinates = [];
+            } else if(!filterNminValue.checked && !filterminValue.checked &&  filterHumusValue.checked &&  filterCNValue.checked ){
+                coordinatesArray.forEach(function (fleachenStueck) {
+                    if(fleachenStueck[6]==1 || fleachenStueck[7]==1){
+                        if (flaechenID === fleachenStueck[0]) {
+                            coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
+                        } else {
+                            if (coordinates.length > 2) {
+                                L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                            }
+                            flaechenID = fleachenStueck[0];
+                            coordinates = [[fleachenStueck[1], fleachenStueck[2]]];
+                        }
+                    }
+                });
+                if (coordinates.length > 2) {
+                    L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                }
+                coordinates = [];
+            } else if(!filterNminValue.checked && filterminValue.checked &&  !filterHumusValue.checked &&  filterCNValue.checked ){
+                coordinatesArray.forEach(function (fleachenStueck) {
+                    if(fleachenStueck[5]==1 || fleachenStueck[7]==1){
+                        if (flaechenID === fleachenStueck[0]) {
+                            coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
+                        } else {
+                            if (coordinates.length > 2) {
+                                L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                            }
+                            flaechenID = fleachenStueck[0];
+                            coordinates = [[fleachenStueck[1], fleachenStueck[2]]];
+                        }
+                    }
+                });
+                if (coordinates.length > 2) {
+                    L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                }
+                coordinates = [];
+            } else if(!filterNminValue.checked && filterminValue.checked &&  filterHumusValue.checked &&  !filterCNValue.checked ){
+                coordinatesArray.forEach(function (fleachenStueck) {
+                    if(fleachenStueck[5]==1 || fleachenStueck[6]==1){
+                        if (flaechenID === fleachenStueck[0]) {
+                            coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
+                        } else {
+                            if (coordinates.length > 2) {
+                                L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                            }
+                            flaechenID = fleachenStueck[0];
+                            coordinates = [[fleachenStueck[1], fleachenStueck[2]]];
+                        }
+                    }
+                });
+                if (coordinates.length > 2) {
+                    L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                }
+                coordinates = [];
+            } else if(!filterNminValue.checked && !filterminValue.checked &&  !filterHumusValue.checked &&  filterCNValue.checked ){
+                coordinatesArray.forEach(function (fleachenStueck) {
+                    if(fleachenStueck[7]==1){
+                        if (flaechenID === fleachenStueck[0]) {
+                            coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
+                        } else {
+                            if (coordinates.length > 2) {
+                                L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                            }
+                            flaechenID = fleachenStueck[0];
+                            coordinates = [[fleachenStueck[1], fleachenStueck[2]]];
+                        }
+                    }
+                });
+                if (coordinates.length > 2) {
+                    L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                }
+                coordinates = [];
+            } else if(!filterNminValue.checked && !filterminValue.checked &&  filterHumusValue.checked &&  !filterCNValue.checked ){
+                coordinatesArray.forEach(function (fleachenStueck) {
+                    if(fleachenStueck[6]==1){
+                        if (flaechenID === fleachenStueck[0]) {
+                            coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
+                        } else {
+                            if (coordinates.length > 2) {
+                                L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                            }
+                            flaechenID = fleachenStueck[0];
+                            coordinates = [[fleachenStueck[1], fleachenStueck[2]]];
+                        }
+                    }
+                });
+                if (coordinates.length > 2) {
+                    L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                }
+                coordinates = [];
+            } else if(!filterNminValue.checked && filterminValue.checked &&  !filterHumusValue.checked &&  !filterCNValue.checked ){
+                coordinatesArray.forEach(function (fleachenStueck) {
+                    if(fleachenStueck[5]==1){
+                        if (flaechenID === fleachenStueck[0]) {
+                            coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
+                        } else {
+                            if (coordinates.length > 2) {
+                                L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                            }
+                            flaechenID = fleachenStueck[0];
+                            coordinates = [[fleachenStueck[1], fleachenStueck[2]]];
+                        }
+                    }
+                });
+                if (coordinates.length > 2) {
+                    L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
+                }
+                coordinates = [];
+            }*/
+
+            coordinates = [];
+        }
+
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polygon: {
+                    shapeOptions: {
+                        color: 'blue'
+                    },
+                    allowIntersection: false,
+                    drawError: {
+                        color: 'orange',
+                        timeout: 1000
+                    },
+                    showArea: true
+                },
+                polyline: false,
+                circle: false,
+                marker: false,
+                circlemarker: false
+            },
+            edit: {
+                featureGroup: drawnItems,
+                remove: true
+            }
+        });
+
+        var includedFlaechen = [];
+
+        map.addControl(drawControl);
+
+
+        var includedFlaechen = [];
+
+
+        map.on('draw:created', function (e) {
+            var layer = e.layer;
+            drawnItems.addLayer(layer);
+
+            // Prüfen, welche Flächen innerhalb der gezeichneten Fläche sind
+            var coordinates = [];
+            var nmin,smin, humus, cn
+            coordinatesArray.forEach(function (fleachenStueck) {
+                
+
+                if (flaechenID === fleachenStueck.ARTIKELNR) {
+                        coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
+                        nmin = fleachenStueck.enthält_nmin
+                        smin = fleachenStueck.enthält_smin
+                        humus = fleachenStueck.enthält_humus
+                        cn = fleachenStueck.enthält_cn
+                } else {
+                    if (coordinates.length > 2) {
+                        // Polygon erstellen und der Karte hinzufügen
+                        var polygon = L.polygon(coordinates, { 
+                            color: 'blue', 
+                            fillColor: 'blue', 
+                            fillOpacity: 0.4 ,     
+                            info: infos })
+
+
+                        var fleachenErstellt = { flaechenID: flaechenID, nmin: nmin, smin: smin, humus: humus, cn: cn};
+
+
+
+                        if (layer.getBounds().contains(polygon.getBounds())) {
+                            includedFlaechen.push(fleachenErstellt);
+                        }   
+                    }
+                    flaechenID = fleachenStueck.ARTIKELNR;
+                    infos = '';
+                    coordinates = [];
+
+                }
+            });
+
+
+            $('#ModalCenter').modal('show');
+        });
+
+        function kmlerstellen() {;
+            var produktid = document.getElementById('probenNr').textContent;
+
+            
+            fetch('/products/generateKmlFile', {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ productIDs: produktid })
+            })
+
+            .then(response => response.text())
+            .then(url => {
+                var blob = new Blob([url], { type: 'application/vnd.google-earth.kml+xml' });
+
+                // Erstelle einen "a" HTML-Element mit einem "download"-Attribut
+                var link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "Fleache"+produktid+".kml";
+            
+                // Füge den Link zum DOM hinzu und simuliere einen Klick
+                document.body.appendChild(link);
+                link.click();
+            
+                // Entferne den Link aus dem DOM
+                document.body.removeChild(link);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function kmlerstellenMehrere() {;
+            var produktid = []
+
+            for (const id of includedFlaechen) {
+                produktid.push(id.flaechenID)
+            }
+
+            
+            fetch('/products/generateKmlFile', {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ productIDs: produktid })
+            })
+
+            .then(response => response.text())
+            .then(url => {
+                var blob = new Blob([url], { type: 'application/vnd.google-earth.kml+xml' });
+
+                // Erstelle einen "a" HTML-Element mit einem "download"-Attribut
+                var link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "FleacheMehrere.kml";
+            
+                // Füge den Link zum DOM hinzu und simuliere einen Klick
+                document.body.appendChild(link);
+                link.click();
+            
+                // Entferne den Link aus dem DOM
+                document.body.removeChild(link);
+            })
+            .catch(error => console.error('Error:', error));
+        }
