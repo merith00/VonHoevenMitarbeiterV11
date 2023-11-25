@@ -204,7 +204,7 @@ async function getBestllungenFromUser(userID) {
 
     // Alle Produkte des Warenkorbs des Users auslesen
     const [result2] = await connection.execute(
-      'SELECT * FROM Produkt WHERE ARTIKELNR IN (SELECT ARTIKELNR FROM WARENKORB_ENTHÄLT_PRODUKT WHERE KUNDENNUMMER = ?)',
+      'SELECT * FROM PRODUKT WHERE ARTIKELNR IN (SELECT ARTIKELNR FROM WARENKORB_ENTHÄLT_PRODUKT WHERE KUNDENNUMMER = ?)',
       [userID]
     );
     cart.products = result2;
@@ -220,11 +220,11 @@ async function getBestllungenFromUser(userID) {
         CASE WHEN PS.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_stickstoff,
         CASE WHEN PS.PROBENARTID IS NOT NULL THEN PS.PROBENSTATUS ELSE 0 END AS statusstickstoff
       FROM
-        Produkt P
+        PRODUKT P
       JOIN
         BESTELLUNG_ENTHAELT_PRODUKT B ON P.ARTIKELNR = B.ARTIKELNR
       JOIN
-        Bestellung O ON B.KUNDENNUMMER = O.KUNDENNUMMER
+        BESTELLUNG O ON B.KUNDENNUMMER = O.KUNDENNUMMER
       LEFT JOIN
         PRODUKT_ENTHAELT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND PP.PROBENARTID = 1
       LEFT JOIN
@@ -268,24 +268,24 @@ async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID) {
         KUNDE.NACHNAME,
         KUNDE.E_MAIL,
         KUNDE.TELEFONNUMMER,
-        Adresse.ORT,
+        ADRESSE.ORT,
         COALESCE(COUNT(P.ARTIKELNR), 0) AS AnzahlFlaechen
       FROM
         KUNDE
-        JOIN Kunde_Hat_Adresse ON KUNDE.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
-        JOIN Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
-          AND Kunde_Hat_Adresse.ORT = Adresse.ORT
-          AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
-          AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
-        LEFT JOIN Bestellung ON KUNDE.KUNDENNUMMER = Bestellung.KUNDENNUMMER
-        LEFT JOIN BESTELLUNG_ENTHAELT_PRODUKT B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
-        LEFT JOIN Produkt P ON B.ARTIKELNR = P.ARTIKELNR
+        JOIN KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
+        JOIN ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
+          AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
+          AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
+          AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
+        LEFT JOIN BESTELLUNG ON KUNDE.KUNDENNUMMER = BESTELLUNG.KUNDENNUMMER
+        LEFT JOIN BESTELLUNG_ENTHAELT_PRODUKT B ON BESTELLUNG.KUNDENNUMMER = B.KUNDENNUMMER
+        LEFT JOIN PRODUKT P ON B.ARTIKELNR = P.ARTIKELNR
         LEFT JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
       WHERE
         GEODATENGEBERID = ?
         AND PEP.PROBENSTATUS = 1
       GROUP BY
-        KUNDE.KUNDENNUMMER, Adresse.ORT, KUNDE.TELEFONNUMMER, KUNDE.VORNAME, KUNDE.NACHNAME, KUNDE.E_MAIL
+        KUNDE.KUNDENNUMMER, ADRESSE.ORT, KUNDE.TELEFONNUMMER, KUNDE.VORNAME, KUNDE.NACHNAME, KUNDE.E_MAIL
       ORDER BY
         KUNDENNUMMER
     `, [geoID]);
@@ -388,27 +388,27 @@ async function getKundenDatenMitGeoDaten(geoID) {
         KUNDE.NACHNAME,
         KUNDE.E_MAIL,
         KUNDE.TELEFONNUMMER,
-        Adresse.ORT,
+        ADRESSE.ORT,
         COALESCE(COUNT(P.ARTIKELNR), 0) AS AnzahlFlaechen
       FROM
         KUNDE
       JOIN
-        Kunde_Hat_Adresse ON KUNDE.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
+        KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
       JOIN
-        Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
-        AND Kunde_Hat_Adresse.ORT = Adresse.ORT
-        AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
-        AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
+        ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
+        AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
+        AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
+        AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
       LEFT JOIN
-        Bestellung ON KUNDE.KUNDENNUMMER = Bestellung.KUNDENNUMMER
+        BESTELLUNG ON KUNDE.KUNDENNUMMER = BESTELLUNG.KUNDENNUMMER
       LEFT JOIN
-        Bestellung_enthaelt_Produkt B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
+        BESTELLUNG_ENTHAELT_PRODUKT B ON BESTELLUNG.KUNDENNUMMER = B.KUNDENNUMMER
       LEFT JOIN
-        Produkt P ON B.ARTIKELNR = P.ARTIKELNR
+        PRODUKT P ON B.ARTIKELNR = P.ARTIKELNR
       WHERE
         GEODATENGEBERID = ?
       GROUP BY
-        KUNDE.KUNDENNUMMER, Adresse.ORT, KUNDE.TELEFONNUMMER, KUNDE.VORNAME, KUNDE.NACHNAME, KUNDE.E_MAIL
+        KUNDE.KUNDENNUMMER, ADRESSE.ORT, KUNDE.TELEFONNUMMER, KUNDE.VORNAME, KUNDE.NACHNAME, KUNDE.E_MAIL
       ORDER BY
         KUNDENNUMMER;
     `, [geoID]);
@@ -458,7 +458,7 @@ async function createBestellung(userID) {
         await connection.commit();
       }
     } catch (error) {
-      console.error('Fehler beim Einfügen: Bestellung ' + error.message);
+      console.error('Fehler beim Einfügen: BESTELLUNG ' + error.message);
     }
   } catch (err) {
     console.log('Ouch!', err);
@@ -506,7 +506,7 @@ async function registerUserWithFleachen(kundennummer, email, telefonnummer, pass
     strasse = strasse || 'null';
     hausnummer = hausnummer || 0;
 
-    // Check if Adresse schon vorhanden
+    // Check if ADRESSE schon vorhanden
     const result4 = await connection.execute('SELECT * FROM ADRESSE WHERE STRASSE = ? AND POSTLEITZAHL = ? AND HAUSNUMMER = ? AND ORT = ?', [strasse, plz, hausnummer, ort]);
 
     if (result4[0].length > 0) {
@@ -872,19 +872,19 @@ async function getkundenDatenVomAusgewaehltenUser(userID) {
         KUNDE.TELEFONNUMMER,
         KUNDE.GEBURTSDATUM,
         KUNDE.PASSWORD,
-        Adresse.ORT,
-        Adresse.POSTLEITZAHL,
-        Adresse.STRASSE,
-        Adresse.HAUSNUMMER
+        ADRESSE.ORT,
+        ADRESSE.POSTLEITZAHL,
+        ADRESSE.STRASSE,
+        ADRESSE.HAUSNUMMER
       FROM
         KUNDE
       JOIN
-        Kunde_Hat_Adresse ON KUNDE.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
+        KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
       JOIN
-        Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
-        AND Kunde_Hat_Adresse.ORT = Adresse.ORT
-        AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
-        AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
+        ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
+        AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
+        AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
+        AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
       WHERE
         KUNDE.KUNDENNUMMER = ?
     `, [userID]);
