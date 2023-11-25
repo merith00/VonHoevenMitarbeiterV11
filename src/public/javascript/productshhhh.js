@@ -121,7 +121,6 @@ function fleachwurdenBearbeitet(dateValue,userID) {
 }
 
 
-//TODO HIER GUCKEN WARUM DAS GEBRAUCHT WIRD
 document.getElementById('uploadFormRegister').addEventListener('submit', function(event) {
   event.preventDefault(); // Verhindert das normale Verhalten des Formular-Submits
 

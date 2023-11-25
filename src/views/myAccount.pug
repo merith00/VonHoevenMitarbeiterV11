@@ -48,7 +48,7 @@ block content
         .form-group.col-md-6
           label(for='passwortWiederholen') Passwort wiederholen
           input#passwortWiederholen.form-control(type='password' placeholder='Passwort wiederholen')
-      button.btn.btn-primary(type='submit' class='btn btn-primary button float-right' onClick='logPasswords()') Passwort &auml;ndern
+      button.btn.btn-primary(class='btn btn-primary button float-right' onClick='logPasswords()') Passwort &auml;ndern
 
 
 
@@ -61,18 +61,9 @@ block content
    
   script.
 
-    var USERID = !{JSON.stringify(USERID)};
-
-
-
-
-
-    
+    var USERID = !{JSON.stringify(USERID)};    
 
     function logPasswords() {
-
-      event.preventDefault();  // Verhindert das Standardverhalten des Submit-Buttons
-
       var neuesPasswort = document.getElementById('neuesPasswort').value;
       var passwortWiederholen = document.getElementById('passwortWiederholen').value;
       console.log('Neues Passwort: ', neuesPasswort);
@@ -91,8 +82,6 @@ block content
       .then(status => handleResponse(status))
       .catch(error => console.error('Error:', error));
     }
-
-
 
     function handleResponse(status) {
       if (status === 200) {
@@ -124,7 +113,6 @@ block content
       notificationOverlay.appendChild(notificationred);
       document.body.appendChild(notificationOverlay);
     }
-
 
     function showSuccessNotification(message) {
       var notificationOverlay = document.createElement('div');

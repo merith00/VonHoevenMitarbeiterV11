@@ -263,21 +263,21 @@ async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID) {
 
     const [rows] = await connection.execute(`
       SELECT 
-        Kunde.KUNDENNUMMER,
-        Kunde.VORNAME,
-        Kunde.NACHNAME,
-        Kunde.E_MAIL,
-        Kunde.TELEFONNUMMER,
+        KUNDE.KUNDENNUMMER,
+        KUNDE.VORNAME,
+        KUNDE.NACHNAME,
+        KUNDE.E_MAIL,
+        KUNDE.TELEFONNUMMER,
         Adresse.ORT,
         COALESCE(COUNT(P.ARTIKELNR), 0) AS AnzahlFlaechen
       FROM
-        Kunde
-        JOIN Kunde_Hat_Adresse ON Kunde.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
+        KUNDE
+        JOIN Kunde_Hat_Adresse ON KUNDE.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
         JOIN Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
           AND Kunde_Hat_Adresse.ORT = Adresse.ORT
           AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
           AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
-        LEFT JOIN Bestellung ON Kunde.KUNDENNUMMER = Bestellung.KUNDENNUMMER
+        LEFT JOIN Bestellung ON KUNDE.KUNDENNUMMER = Bestellung.KUNDENNUMMER
         LEFT JOIN BESTELLUNG_ENTHAELT_PRODUKT B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
         LEFT JOIN Produkt P ON B.ARTIKELNR = P.ARTIKELNR
         LEFT JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
@@ -285,7 +285,7 @@ async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID) {
         GEODATENGEBERID = ?
         AND PEP.PROBENSTATUS = 1
       GROUP BY
-        Kunde.KUNDENNUMMER, Adresse.ORT, Kunde.TELEFONNUMMER, Kunde.VORNAME, Kunde.NACHNAME, Kunde.E_MAIL
+        KUNDE.KUNDENNUMMER, Adresse.ORT, KUNDE.TELEFONNUMMER, KUNDE.VORNAME, KUNDE.NACHNAME, KUNDE.E_MAIL
       ORDER BY
         KUNDENNUMMER
     `, [geoID]);
@@ -383,24 +383,24 @@ async function getKundenDatenMitGeoDaten(geoID) {
 
     const [rows] = await connection.execute(`
       SELECT
-        Kunde.KUNDENNUMMER,
-        Kunde.VORNAME,
-        Kunde.NACHNAME,
-        Kunde.E_MAIL,
-        Kunde.TELEFONNUMMER,
+        KUNDE.KUNDENNUMMER,
+        KUNDE.VORNAME,
+        KUNDE.NACHNAME,
+        KUNDE.E_MAIL,
+        KUNDE.TELEFONNUMMER,
         Adresse.ORT,
         COALESCE(COUNT(P.ARTIKELNR), 0) AS AnzahlFlaechen
       FROM
-        Kunde
+        KUNDE
       JOIN
-        Kunde_Hat_Adresse ON Kunde.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
+        Kunde_Hat_Adresse ON KUNDE.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
       JOIN
         Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
         AND Kunde_Hat_Adresse.ORT = Adresse.ORT
         AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
         AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
       LEFT JOIN
-        Bestellung ON Kunde.KUNDENNUMMER = Bestellung.KUNDENNUMMER
+        Bestellung ON KUNDE.KUNDENNUMMER = Bestellung.KUNDENNUMMER
       LEFT JOIN
         Bestellung_enthaelt_Produkt B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
       LEFT JOIN
@@ -408,7 +408,7 @@ async function getKundenDatenMitGeoDaten(geoID) {
       WHERE
         GEODATENGEBERID = ?
       GROUP BY
-        Kunde.KUNDENNUMMER, Adresse.ORT, Kunde.TELEFONNUMMER, Kunde.VORNAME, Kunde.NACHNAME, Kunde.E_MAIL
+        KUNDE.KUNDENNUMMER, Adresse.ORT, KUNDE.TELEFONNUMMER, KUNDE.VORNAME, KUNDE.NACHNAME, KUNDE.E_MAIL
       ORDER BY
         KUNDENNUMMER;
     `, [geoID]);
@@ -491,7 +491,7 @@ async function registerUserWithFleachen(kundennummer, email, telefonnummer, pass
 
   try {
     if (selectedOption > 1) {
-      const maxKundennummer = await connection.execute('SELECT MAX(KUNDENNUMMER) AS MAXKUNDENNUMMER FROM Kunde WHERE GEODATENGEBERID  != 1');
+      const maxKundennummer = await connection.execute('SELECT MAX(KUNDENNUMMER) AS MAXKUNDENNUMMER FROM KUNDE WHERE GEODATENGEBERID  != 1');
 
       kundennummer = maxKundennummer[0][0].MAXKUNDENNUMMER + 1;
     }
@@ -717,7 +717,7 @@ async function beiMehrerenKundenDieFleachenHinzufügen(res, uebergebeneInformati
     for (const einzelneInformationen of uebergebeneInformation) {
 
       if (einzelneInformationen[0].selectedOption > 1) {
-        const result = await connection.execute('SELECT MAX(KUNDENNUMMER) FROM Kunde WHERE GEODATENGEBERID  != 1');
+        const result = await connection.execute('SELECT MAX(KUNDENNUMMER) FROM KUNDE WHERE GEODATENGEBERID  != 1');
         einzelneInformationen[0].USERID = result[0]['MAX(KUNDENNUMMER)'] + 1;
       }
 
@@ -865,11 +865,11 @@ async function getkundenDatenVomAusgewaehltenUser(userID) {
 
     const [result] = await connection.execute(`
       SELECT
-        Kunde.KUNDENNUMMER,
-        Kunde.VORNAME,
-        Kunde.NACHNAME,
-        Kunde.E_MAIL,
-        Kunde.TELEFONNUMMER,
+        KUNDE.KUNDENNUMMER,
+        KUNDE.VORNAME,
+        KUNDE.NACHNAME,
+        KUNDE.E_MAIL,
+        KUNDE.TELEFONNUMMER,
         KUNDE.GEBURTSDATUM,
         KUNDE.PASSWORD,
         Adresse.ORT,
@@ -877,9 +877,9 @@ async function getkundenDatenVomAusgewaehltenUser(userID) {
         Adresse.STRASSE,
         Adresse.HAUSNUMMER
       FROM
-        Kunde
+        KUNDE
       JOIN
-        Kunde_Hat_Adresse ON Kunde.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
+        Kunde_Hat_Adresse ON KUNDE.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
       JOIN
         Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
         AND Kunde_Hat_Adresse.ORT = Adresse.ORT
