@@ -126,7 +126,7 @@ async function getFleachenFromUserBestellt(userID) {
       JOIN BESTELLUNG_ENTHAELT_PRODUKT wp ON wp.ARTIKELNR = p.ARTIKELNR
       JOIN BESTELLUNG w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
       JOIN KUNDE k ON k.KUNDENNUMMER = w.KUNDENNUMMER
-      WHERE K.KUNDENNUMMER = ? 
+      WHERE k.KUNDENNUMMER = ? 
       ORDER BY fc.ARTIKELNR, fc.POSITIONSPUNKT
     `, [userID]);
 
@@ -935,7 +935,7 @@ async function kundenzumloeschen(kundennummer) {
 
   try {
     connection = await mysql.createConnection(config);
-    await connection.execute('delete from kunde where KUNDENNUMMER= ?', [kundennummer]);
+    await connection.execute('delete from KUNDE where KUNDENNUMMER= ?', [kundennummer]);
     await connection.commit();
   } catch (err) {
     console.log('Ouch!', err);
