@@ -48,7 +48,7 @@ function kmlerstellen(kundenummer) {
     
 
 //wird genutzt
-function fleachwurdenBearbeitet(dateValue,userID) {
+function ProbeWurdeGezogen(dateValue,userID) {
   const selectedProducts = [];
   const rows = document.querySelectorAll('tr');
 
@@ -101,8 +101,11 @@ function fleachwurdenBearbeitet(dateValue,userID) {
     }
   }
 
+  document.getElementById('loadingIndicator').style.display = 'block';
 
-  fetch('/products/fleachenAufBearbeitetStellen', {
+
+
+  fetch('/products/ProbeWurdeGezogen', {
     method: 'PUT',
     credentials: 'include',
     headers: {
@@ -113,11 +116,6 @@ function fleachwurdenBearbeitet(dateValue,userID) {
   .then(response => response.status)
   .then(status => handleResponse(status))
   .catch(error => console.error('Error:', error));
-
-  location.reload()
-  window.location.href = '/products/'+userID; // Ändere die URL entsprechend deiner Seite 
-
-
 }
 
 
@@ -149,9 +147,11 @@ document.getElementById('uploadFormRegister').addEventListener('submit', functio
 
     
 
-function funktionAufBearbeitenStellen(userid) {
+function funktionFleacheSollBearbeitetWerden(userid) {
   const selectedProducts = [];
   const rows = document.querySelectorAll('tr');
+  document.getElementById('loadingIndicatorProbeMussGezogenWerden').style.display = 'block';
+
 
   for (let index = 1; index < rows.length; index++) {
     var EminValue = 'n';
@@ -205,7 +205,8 @@ function funktionAufBearbeitenStellen(userid) {
   }
 
 
-  fetch('/products/getaufBearbeitenStellen', {
+
+  fetch('/products/funktionFleacheSollBearbeitetWerden', {
     method: 'PUT',
     credentials: 'include',
     headers: {
@@ -217,9 +218,6 @@ function funktionAufBearbeitenStellen(userid) {
   .then(status => handleResponse(status))
   .catch(error => console.error('Error:', error));
 
-
-  location.reload()
-  window.location.href = '/products/'+userid; // Ändere die URL entsprechend deiner Seite 
 }
 
 
@@ -269,7 +267,7 @@ L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
   subdomains:['mt0','mt1','mt2','mt3'],
   attribution: '© Google'
 }).addTo(map);
-
+ 
 
 var colorArt = '#b9f700'
 
@@ -311,7 +309,22 @@ coordinatesArrayBestellt.forEach(function (fleachenStueck) {
 
 // Zum Schluss das letzte Polygon zeichnen (falls vorhanden)
 if (coordinates.length > 2) {
-    L.polygon(coordinates, { color: colorArt, fillColor: colorArt, fillOpacity: 0.4 }).addTo(map);
+  var polygon = L.polygon(coordinates, { 
+    color: colorArt, 
+    fillColor: colorArt, 
+    fillOpacity: 0.4 ,     
+    info: flaechenID }).addTo(map);
+
+    polygon.on('click', function () {
+      var info = this.options.info;
+      const neuBeantragenCheckbox = document.querySelector('input[name=neuBeantragen'+info+']');
+
+      if (neuBeantragenCheckbox.checked) {
+        neuBeantragenCheckbox.checked = false;                        
+      } else {
+        neuBeantragenCheckbox.checked = true;
+      }                    
+  });
 }
 
 flaechenID = 0;
@@ -363,47 +376,13 @@ var drawControl = new L.Control.Draw({
 });
 
 
-
-
-//mhhh weiß ich nicht digga
 function handleResponse(status) {
   if (status === 200) {
-    const div = document.createElement('div');
-    div.classList.add('notificationgreen');
-    const p = document.createElement('p');
-    p.textContent = 'Produkt erfolgreich hinzugefügt';
-    div.appendChild(p);
-    document.body.appendChild(div);
-    location.reload()
-  } if (status === 100) {
-    const div = document.createElement('div');
-    div.classList.add('notificationgreen');
-    const p = document.createElement('p');
-    p.textContent = 'Produkt erfolgreich hinzugefügt';
-    div.appendChild(p);
-    document.body.appendChild(div);
-    location.reload()
-  }
-  
-  else if (status === 300) {
-    const div = document.createElement('div');
-    div.classList.add('notificationgreen');
-    const p = document.createElement('p');
-    p.textContent = 'Produkt erfolgreich hinzugefügt';
-    div.appendChild(p);
-    document.body.appendChild(div);
-    location.reload()
-    window.location.href = '/products'; // Ändere die URL entsprechend deiner Seite 
-  } else {
-    const div = document.createElement('div');
-    div.classList.add('notificationred');
-    const p = document.createElement('p');
-    p.textContent = 'Fehler!';
-    div.appendChild(p);
-    document.body.appendChild(div);
+    location.reload(); // Hier die Seite neu laden
+  } else if (status === 404) {
+    console.error('ERROR')
   }
 }
-
 
 
 

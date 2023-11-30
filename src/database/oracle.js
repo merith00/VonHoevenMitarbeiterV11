@@ -1,14 +1,13 @@
 const config = require('./conf')
 const mysql = require('mysql2/promise'); 
 
-async function fleacheAufBearbeitetSetzen(productIDs) {
+async function ProbeWurdeGezogen(productIDs) {
   const connection = await mysql.createConnection(config);
 
 
   try {
     for (const id of productIDs) {
 
-      console.log('HIER')
       await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ?", [id.productId]);
 
       await connection.execute("UPDATE PRODUKT SET STARTDATUM = STR_TO_DATE(?, '%Y-%m-%d') WHERE ARTIKELNR = ?", [id.dateValue, id.productId]);
@@ -40,7 +39,7 @@ async function fleacheAufBearbeitetSetzen(productIDs) {
   }
 }
 
-async function getaufBearbeitenStellen(productIDs) {
+async function funktionFleacheSollBearbeitetWerden(productIDs) {
   const connection = await mysql.createConnection(config);
 
   try {
@@ -955,7 +954,7 @@ module.exports = {
   getMitarbeiterdaten,
   anderPasswort,
   getInformationsForGenerateKmlFile,
-  fleacheAufBearbeitetSetzen,
+  funktionFleacheSollBearbeitetWerden,
   registerUserWithFleachen,
   getBestllungenFromUser,
   beiEinemKundenDieFleachenHinzufügen,
@@ -964,7 +963,7 @@ module.exports = {
   getFleachenFromUserBestellt,
   createBestellung,
   beiMehrerenKundenDieFleachenHinzufügen,
-  getaufBearbeitenStellen,
+  ProbeWurdeGezogen,
   getUpdateDatenVomKunden,
   kundenzumloeschen
 }

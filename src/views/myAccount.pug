@@ -64,6 +64,8 @@ block content
     var USERID = !{JSON.stringify(USERID)};    
 
     function logPasswords() {
+      event.preventDefault();
+
       var neuesPasswort = document.getElementById('neuesPasswort').value;
       var passwortWiederholen = document.getElementById('passwortWiederholen').value;
       console.log('Neues Passwort: ', neuesPasswort);
@@ -136,4 +138,7 @@ block content
       notificationOverlay.appendChild(notificationGreen);
       document.body.appendChild(notificationOverlay);
     }
+
+
+
 

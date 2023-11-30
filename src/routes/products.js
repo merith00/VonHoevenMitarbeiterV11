@@ -7,7 +7,7 @@ const getFleachenFromUserBestellt = require('../database/oracle').getFleachenFro
 const registerUserWithFleachen = require('../database/oracle').registerUserWithFleachen
 const getKundendaten = require('../database/oracle').getKundendaten
 const createBestellung = require('../database/oracle').createBestellung 
-const getaufBearbeitenStellen = require('../database/oracle').getaufBearbeitenStellen
+const ProbeWurdeGezogen = require('../database/oracle').ProbeWurdeGezogen
 const beiEinemKundenDieFleachenHinzufügen = require('../database/oracle').beiEinemKundenDieFleachenHinzufügen
 const beiMehrerenKundenDieFleachenHinzufügen = require('../database/oracle').beiMehrerenKundenDieFleachenHinzufügen
 const getKundendatenDieZuZiehenSind = require('../database/oracle').getKundendatenDieZuZiehenSind
@@ -24,7 +24,7 @@ const kundenzumloeschen = require('../database/oracle').kundenzumloeschen
 const tokml = require('tokml');
 
 const getInformationsForGenerateKmlFile = require('../database/oracle').getInformationsForGenerateKmlFile
-const fleacheAufBearbeitetSetzen = require('../database/oracle').fleacheAufBearbeitetSetzen
+const funktionFleacheSollBearbeitetWerden = require('../database/oracle').funktionFleacheSollBearbeitetWerden
 
 var getNoticitcation = ''
 
@@ -343,31 +343,31 @@ router.put('/setUpdateDatenVomKunden', async (req,res) => {
 
     try {
       await getUpdateDatenVomKunden(kundennummer,vorname,nachname,email,telefonnummer,ort,plz,strasse,hausnummer,password,geburtsdatum)
-      res.sendStatus(100)
+      res.sendStatus(200)
     } catch (error) {
       console.error('Fehler:', error);
-      res.status(500).send('Fehler beim Hinzufügen der neuen Informatioenen.');
+      res.status(404).send('Fehler beim Hinzufügen der neuen Informatioenen.');
     }
   } 
 });
 
-router.put('/fleachenAufBearbeitetStellen', async (req,res) => {
+router.put('/funktionFleacheSollBearbeitetWerden', async (req,res) => {
   if(req.isAuthenticated()){
     try {
-      console.log(req.body.productIDs)
-      await fleacheAufBearbeitetSetzen(req.body.productIDs)
-      res.sendStatus(100)
+      await funktionFleacheSollBearbeitetWerden(req.body.productIDs)
+      res.sendStatus(200)
     } catch (error) {
       console.error('Fehler:', error);
     }
   }
 });
 
-router.put('/getaufBearbeitenStellen', async (req,res) => {
+router.put('/ProbeWurdeGezogen', async (req,res) => {
   if(req.isAuthenticated()){
     const productIDs = req.body.productIDs;
     try {
-      await getaufBearbeitenStellen(productIDs)
+      await ProbeWurdeGezogen(productIDs)
+      res.sendStatus(200)
     } catch (error) {
       console.error('Fehler:', error);
     }
@@ -389,7 +389,6 @@ router.put('/deleteCustomer', async (req,res) => {
       const { kundeloeschen} = req.body;
       await kundenzumloeschen(kundeloeschen)
       res.sendStatus(200)
-      console.log(kundeloeschen)
     }catch(error){
       console.log(error)
       res.sendStatus(404)
@@ -488,7 +487,6 @@ async function readDataFromZipFile(file, res, req, selectedOption, register, anz
       geojson = convertTOWGS(geojson);
     } else if(isTransverseMercator(prjBuffer)){
       geojson = convertTOWGSTransverseMercator(geojson);
-      console.log('ES handelt sich um transmecador')
     }
 
     onHightLight(geojson, res, req, selectedOption, register, anzahldateien)

@@ -141,6 +141,7 @@ block content
         function fleachwurdenBearbeitet(dateValue,userID) {
             const selectedProducts = [];
 
+
             for (let index = 0; index < includedFlaechen.length; index++) {
                 var EminValue = 'n';
                 var MangatValue = 'n';
@@ -181,8 +182,9 @@ block content
             }
 
             document.getElementById('loadingIndicator').style.display = 'block';
-            
-            fetch('/products/fleachenAufBearbeitetStellen', {
+
+
+            fetch('/products/ProbeWurdeGezogen', {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {
@@ -190,30 +192,22 @@ block content
                 },
                 body: JSON.stringify({ productIDs: selectedProducts })
             })
-            .then(response => {
-                if (response.ok) {
-                    console.log('Anfrage war erfolgreich');
-                } else {
-                    console.error('Fehler beim Aktualisieren der Flächen');
-                }
-            })
-            .catch(error => {
-                console.error('Fehler beim Ausführen der Fetch-Anfrage:', error);
-            })
-            .finally(() => {
-                window.location.reload();
-            });
+            .then(response => response.status)
+            .then(status => handleResponse(status))
+            .catch(error => console.error('Error:', error));
         }
-
 
         function handleResponse(status) {
-            console.log(status)
-            if (status === 100) {
+            if (status === 200) {
+                location.reload();
+            } else if (status === 100) {
                 location.reload()
                 window.location.href = '/cart'; // Ändere die URL entsprechend deiner Seite 
-            } 
+            }  // Hier die Seite neu laden
+             else if (status === 404) {
+                console.error('ERROR')
+            }
         }
-
 
         function kundenAnsehen(kundenummer) {
             var link = document.getElementById('kundenNr');
@@ -280,7 +274,7 @@ block content
         filterCNValue.addEventListener('change', function() {
                 updateFunction();
         });
-
+ 
         updateFunction();
 
 
@@ -338,6 +332,7 @@ block content
                             var area = L.GeometryUtil.geodesicArea(polygon.getLatLngs()[0]) / 10000;
                             area = area.toFixed(2);
 
+
                             polygon.on('click', function () {
                                 var info = this.options.info;
                                 var datum = formatDate(info.beprobenAb);
@@ -384,6 +379,7 @@ block content
                             [fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG],
                         ];
                         infos = '';
+
                     }
                 });
 
@@ -395,6 +391,9 @@ block content
                         fillOpacity: 0.4,
                         info: infos,
                     }).addTo(map);
+
+                    var area = L.GeometryUtil.geodesicArea(polygon.getLatLngs()[0]) / 10000;
+                    area = area.toFixed(2);
 
                     polygon.on('click', function () {
                         var info = this.options.info;
@@ -437,11 +436,9 @@ block content
                         $('#exampleModalCenter').modal('show');
                     });
                 }
-
                 coordinates = [];
                 flaechenID = 0;
-            }
-        
+            } 
             /*else if(!filterNminValue.checked && filterminValue.checked &&  filterHumusValue.checked &&  filterCNValue.checked ){
                 coordinatesArray.forEach(function (fleachenStueck) {
                     if(fleachenStueck[5]==1 || fleachenStueck[6]==1 || fleachenStueck[7]==1){
@@ -580,7 +577,7 @@ block content
             draw: {
                 polygon: {
                     shapeOptions: {
-                        color: 'blue'
+                        color: 'red'
                     },
                     allowIntersection: false,
                     drawError: {
@@ -601,29 +598,21 @@ block content
         });
 
         var includedFlaechen = [];
-
         map.addControl(drawControl);
-
-
-        var includedFlaechen = [];
-
 
         map.on('draw:created', function (e) {
             var layer = e.layer;
             drawnItems.addLayer(layer);
 
-            // Prüfen, welche Flächen innerhalb der gezeichneten Fläche sind
             var coordinates = [];
             var nmin,smin, humus, cn
             coordinatesArray.forEach(function (fleachenStueck) {
-                
-
                 if (flaechenID === fleachenStueck.ARTIKELNR) {
-                        coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
-                        nmin = fleachenStueck.enthält_nmin
-                        smin = fleachenStueck.enthält_smin
-                        humus = fleachenStueck.enthält_humus
-                        cn = fleachenStueck.enthält_cn
+                    coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
+                    nmin = fleachenStueck.enthält_nmin
+                    smin = fleachenStueck.enthält_smin
+                    humus = fleachenStueck.enthält_humus
+                    cn = fleachenStueck.enthält_cn
                 } else {
                     if (coordinates.length > 2) {
                         // Polygon erstellen und der Karte hinzufügen
@@ -633,25 +622,63 @@ block content
                             fillOpacity: 0.4 ,     
                             info: infos })
 
-
                         var fleachenErstellt = { flaechenID: flaechenID, nmin: nmin, smin: smin, humus: humus, cn: cn};
 
-
-
-                        if (layer.getBounds().contains(polygon.getBounds())) {
+                        if (isInnerPolygonInsideOuterPolygon(polygon, layer)) {
                             includedFlaechen.push(fleachenErstellt);
                         }   
                     }
                     flaechenID = fleachenStueck.ARTIKELNR;
                     infos = '';
                     coordinates = [];
-
                 }
             });
 
 
+            if (coordinates.length > 2) {
+                var polygon = L.polygon(coordinates, { 
+                    color: 'blue', 
+                    fillColor: 'blue', 
+                    fillOpacity: 0.4 ,     
+                    info: infos })
+
+                var fleachenErstellt = { flaechenID: flaechenID, nmin: nmin, smin: smin, humus: humus, cn: cn};
+
+                if (isInnerPolygonInsideOuterPolygon(polygon, layer)) {
+                    includedFlaechen.push(fleachenErstellt);
+                }  
+            }
             $('#ModalCenter').modal('show');
         });
+
+        function isInnerPolygonInsideOuterPolygon(innerPolygon, outerPolygon) {
+            var innerLatLngs = innerPolygon.getLatLngs()[0];
+            var outerLatLngs = outerPolygon.getLatLngs()[0];
+
+            for (var i = 0; i < innerLatLngs.length; i++) {
+                var isInside = isPointInsidePolygon(innerLatLngs[i], outerLatLngs);
+                if (!isInside) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function isPointInsidePolygon(point, polygon) {
+            var x = point.lng;
+            var y = point.lat;
+
+            var inside = false;
+            for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                var xi = polygon[i].lng, yi = polygon[i].lat;
+                var xj = polygon[j].lng, yj = polygon[j].lat;
+
+                var intersect = ((yi > y) !== (yj > y)) &&
+                    (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
 
         function kmlerstellen() {
             var produktid = document.getElementById('probenNr').textContent;
