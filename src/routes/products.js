@@ -15,6 +15,7 @@ const getkundenDatenVomAusgewaehltenUser = require('../database/oracle').getkund
 const getUpdateDatenVomKunden = require('../database/oracle').getUpdateDatenVomKunden
 const kundenzumloeschen = require('../database/oracle').kundenzumloeschen
 
+var path = require('path');
 
 
 
