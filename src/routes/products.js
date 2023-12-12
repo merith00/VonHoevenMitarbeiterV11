@@ -305,8 +305,8 @@ async function InfoToKMLFile(infoProductIDs, res) {
 
   console.log(kml)
   
-
-  fs.writeFileSync('output.kml', kml);
+  const filePath = path.join(__dirname, 'output.kml');
+  await fs.promises.writeFile(filePath, kml);
 
   res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
   res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml');
