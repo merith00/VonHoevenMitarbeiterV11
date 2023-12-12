@@ -306,12 +306,15 @@ async function InfoToKMLFile(infoProductIDs, res) {
 
   console.log(kml)
   
-  const filePath = path.join(__dirname, 'output.kml');
-  await fs.promises.writeFile(filePath, kml);
-
+  
   res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
   res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml');
   res.send(xmlString);
+
+  return xmlString
+
+
+
 }
 
 
@@ -320,10 +323,17 @@ router.put('/generateKmlFile', async (req,res) => {
     const productIDs = req.body.productIDs;
     try {
       const infoProductIDs = await getInformationsForGenerateKmlFile(productIDs)
-      await InfoToKMLFile(infoProductIDs, res);
+      const xmlString = await InfoToKMLFile(infoProductIDs, res);
+      res.status(500).send(xmlString);
+
+
+      const filePath = path.join(__dirname, 'output.kml');
+      await fs.promises.writeFile(filePath, kml);
+
+
     } catch (error) {
       console.error('Fehler:', error);
-      res.status(500).send('Fehler beim Hinzufügen zum Warenkorb.');
+      res.status(500).send('Fehler beim Hinzufügen zuWarenkorb.');
     }
   }
 });
