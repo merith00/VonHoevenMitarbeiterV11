@@ -307,9 +307,7 @@ async function InfoToKMLFile(infoProductIDs, res) {
   console.log(kml)
   
   
-  res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
-  res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml');
-  res.send(xmlString);
+
 
   return xmlString
 
@@ -321,14 +319,17 @@ async function InfoToKMLFile(infoProductIDs, res) {
 router.put('/generateKmlFile', async (req,res) => {
   if(req.isAuthenticated()){
     const productIDs = req.body.productIDs;
+    var xmlString;
     try {
       const infoProductIDs = await getInformationsForGenerateKmlFile(productIDs)
-      const xmlString = await InfoToKMLFile(infoProductIDs, res);
-      res.status(500).send(xmlString);
+      xmlString = await InfoToKMLFile(infoProductIDs, res);
+      res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
+      res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml');
+      res.status(200).send(xmlString);
 
 
-      const filePath = path.join(__dirname, 'output.kml');
-      await fs.promises.writeFile(filePath, kml);
+      //const filePath = path.join(__dirname, 'output.kml');
+      //await fs.promises.writeFile(filePath, kml);
 
 
     } catch (error) {
