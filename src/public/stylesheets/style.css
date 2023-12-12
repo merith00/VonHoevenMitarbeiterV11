@@ -100,7 +100,6 @@ body, html {
 input[type="checkbox"] {
     transform: scale(1.8); /* Ändert die Größe der Checkbox auf das 1,5-fache */
     color: red !important; /* Hintergrundfarbe ändern */
-
 }
 
 td p {

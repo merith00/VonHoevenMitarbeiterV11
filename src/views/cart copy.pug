@@ -1,9 +1,10 @@
 extends layout
 
 block content
-    .container-fluid.secondary-backgroundcolor.flex-grow-1.text-center
-        .row(style="height:100%;")
-            .col-sm-auto.align-items-center.d-flex.g-3
+    .container-fluid.flex-grow-1.d-flex.secondary-backgroundcolor
+        .row(style="width: 100%; height:100%")
+            //- Linker Teil mit dem Bild (10% Breite)
+            .col-sm-auto.custom-left-col.d-flex.align-items-center
                 table.table.table-bordered
                     thead
                         tr.primary-backgroundcolor
@@ -25,10 +26,11 @@ block content
                         td C/N
                         td       
                             input(type='checkbox', name='filterCN', value='4', checked)
-            .col.flex.align-items-center
+            //- Rechter Teil mit der Karte (90% Breite)
+            .col.d-flex.align-items-center
                 .container-fluid.vertical-center
-                    div#map(style='width: 100%; height: 95%;')
-
+                    div#map(style='width: 100%; height: 95%')
+    
     #exampleModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
         .modal-dialog.modal-dialog-centered(role='document')
             .modal-content.neutral-backgroundcolor
@@ -139,7 +141,12 @@ block content
 
         function fleachwurdenBearbeitet(dateValue,userID) {
             const selectedProducts = [];
-            for (let index = 0; index < includedFlaechen.length; index++) {
+
+            console.log('HHHHIWE')
+
+            console.log(includedFlaechen)
+
+            /*for (let index = 0; index < includedFlaechen.length; index++) {
                 var EminValue = 'n';
                 var MangatValue = 'n';
                 var StickstoffValue = 'n';
@@ -178,7 +185,6 @@ block content
                     selectedProducts.push(productInfo)
             }
 
-
             document.getElementById('loadingIndicator').style.display = 'block';
 
 
@@ -191,8 +197,8 @@ block content
                 body: JSON.stringify({ productIDs: selectedProducts })
             })
             .then(response => response.status)
-            .then(status => handleResponse(status))
-            .catch(error => console.error('Error:', error));
+            //.then(status => handleResponse(status))
+            .catch(error => console.error('Error:', error));*/
         }
 
 

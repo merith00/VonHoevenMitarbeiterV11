@@ -302,6 +302,8 @@ async function InfoToKMLFile(infoProductIDs, res) {
   </kml>`;
   
   const kml = tokml(geojson, kmlOptions);
+
+  console.log(kml)
   
 
   fs.writeFileSync('output.kml', kml);

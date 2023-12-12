@@ -4,28 +4,35 @@ const mysql = require('mysql2/promise');
 async function ProbeWurdeGezogen(productIDs) {
   const connection = await mysql.createConnection(config);
 
-
   try {
     for (const id of productIDs) {
+      // Check if PROBENSTATUS is not already 3 for the given ID
+      const [existingProbeStatusRows] = await connection.execute("SELECT PROBENSTATUS FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ? AND PROBENSTATUS = 3", [id.productId]);
 
-      await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ?", [id.productId]);
+      if (existingProbeStatusRows.length === 0) {
+        // Update only if PROBENSTATUS is not already 3
 
-      await connection.execute("UPDATE PRODUKT SET STARTDATUM = STR_TO_DATE(?, '%Y-%m-%d') WHERE ARTIKELNR = ?", [id.dateValue, id.productId]);
+        await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ?", [id.productId]);
+        console.log(id.dateValue);
 
-      if (id.NminValue == 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 3)", [id.productId]);
-      }
 
-      if (id.SminValue == 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 3)", [id.productId]);
-      }
+        await connection.execute("UPDATE PRODUKT SET STARTDATUM = STR_TO_DATE(?, '%Y-%m-%d') WHERE ARTIKELNR = ?", [id.dateValue, id.productId]);
 
-      if (id.HumusValue == 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 3)", [id.productId]);
-      }
+        if (id.NminValue == 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 3)", [id.productId]);
+        }
 
-      if (id.CnValue == 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 3)", [id.productId]);
+        if (id.SminValue == 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 3)", [id.productId]);
+        }
+
+        if (id.HumusValue == 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 3)", [id.productId]);
+        }
+
+        if (id.CnValue == 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 3)", [id.productId]);
+        }
       }
     }
 
@@ -38,28 +45,50 @@ async function ProbeWurdeGezogen(productIDs) {
     }
   }
 }
+
+
 
 async function funktionFleacheSollBearbeitetWerden(productIDs) {
   const connection = await mysql.createConnection(config);
 
   try {
     for (const id of productIDs) {
-      await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ?", [id.productId]);
+      // Check if PROBENSTATUS is not already 1 for the given ID
+      const [existingProbeStatusRows] = await connection.execute("SELECT PROBENSTATUS FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ? AND PROBENSTATUS = 1", [id.productId]);
+      var dateValue = productIDs[0].dateValue;
+      var sysdate = new Date(); // Hier wird das aktuelle Datum erstellt
+      
+      if (existingProbeStatusRows.length === 0) {
+        // Update only if PROBENSTATUS is not already 1
+      
+        await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ?", [id.productId]);
+      
+        if (dateValue === '1') {
+          dateValue = sysdate.getFullYear() + '-01-01' ;
+        } else if (dateValue === '2') {
+          dateValue = sysdate.getFullYear() + '-02-15' ;
+        } else if (dateValue === '3') {
+          dateValue = sysdate.getFullYear() + '-03-15' ;
+        }
+        
+      
+        await connection.execute("UPDATE PRODUKT SET STARTDATUM = STR_TO_DATE(?, '%Y-%m-%d') WHERE ARTIKELNR = ?", [dateValue, id.productId]);
 
-      if (id.NminValue == 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)", [id.productId]);
-      }
+        if (id.NminValue == 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)", [id.productId]);
+        }
 
-      if (id.SminValue == 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 1)", [id.productId]);
-      }
+        if (id.SminValue == 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 1)", [id.productId]);
+        }
 
-      if (id.HumusValue == 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 1)", [id.productId]);
-      }
+        if (id.HumusValue == 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 1)", [id.productId]);
+        }
 
-      if (id.CnValue == 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 1)", [id.productId]);
+        if (id.CnValue == 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 1)", [id.productId]);
+        }
       }
     }
 
@@ -72,6 +101,7 @@ async function funktionFleacheSollBearbeitetWerden(productIDs) {
     }
   }
 }
+
 
 async function getfleachenFromAllUser() {
   let connection;

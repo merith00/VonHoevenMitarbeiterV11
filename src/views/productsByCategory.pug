@@ -30,7 +30,7 @@ block content
                         th.secondary-color(scope="col") S<sub class='subscript'>min
                         th.secondary-color(scope="col") Humus
                         th.secondary-color(scope="col") C/N
-                        th.secondary-color(scope="col") Datum
+                        th.secondary-color(scope="col") Stichtag
                         th.secondary-color(scope="col") 
                           p Auswählen
                           input#auswaehlenCheckbox(type='checkbox')
@@ -53,16 +53,24 @@ block content
                           td.bestellung
                             input.normal#CheckboxCn(type='checkbox', name='CheckboxCn'+product.ARTIKELNR, value=(product[14]), checked=(product[14] === 1), disabled ='true')
                           - if (product.STARTDATUM)
-                            td= product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                            - if(product.statusmangat === 1)
+                              td ab
+                                p= product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                            - else 
+                              td am
+                                p= product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
                           - else
                             td= 'No Date'
                           td.tdright
                             input#neuBeantragen(type='checkbox', name='neuBeantragen'+product.ARTIKELNR, value='1')
                              
-            .container  
-                  button.btn.btn-primary(type='button', style='margin-top: 10px', id='kmlbutton', onClick="kmlerstellen("+UserCart.products[0][0]+")", class='btn btn-primary button float-right bestellbutton') KML erstellen
-                  button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalProbeMussGezogenWerden' id='ModalProbeSollGezogenWerden', class='btn btn-primary button float-right bestellbuttont' style='margin-top: 10px; margin-right: 15px') Fläche auf Bearbeiten stellen
-                  button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalProbeWurdeGezogen' id='updatebutton', class='btn btn-primary button float-right bestellbuttont' style=' margin-top: 10px; margin-right: 15px') Proben gezogen
+            .row
+              .col-3 
+                button.btn.btn-primary(type='button', id='kmlbutton', onClick="kmlerstellen("+UserCart.products[0][0]+")", class='button ') KML erstellen
+              .col-3
+                button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalProbeMussGezogenWerden' id='ModalProbeSollGezogenWerden', class='button') Fläche auf Bearbeiten stellen
+              .col-3
+                button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalProbeWurdeGezogen' id='updatebutton', class='button') Proben gezogen
 
       .col-md-6.d-flex.flex-column(style='height: 80vh;')
         .container-fluid.vertical-center
@@ -104,7 +112,7 @@ block content
             option(value="3") Ab 15.03 Späte Sommerung
         // Modal-Body
         .modal-body
-            button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="funktionFleacheSollBearbeitetWerden("+dieUserID+")", class='btn btn-primary button float-right bestellbutton') Proben ziehen
+            button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="funktionFleacheSollBearbeitetWerden(document.getElementById('seasonSelector').value"+","+dieUserID+")", class='btn btn-primary button float-right bestellbutton') Proben ziehen
     div#loadingIndicatorProbeMussGezogenWerden(style='display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); color: white; text-align: center; line-height: 100vh;')
       div.spinner-border(text='loading') 
 
@@ -218,7 +226,7 @@ block content
     // Setzen Sie das Datum als Standardwert für das Eingabedatum
     document.getElementById('datepicker').value = todayFormatted;
 
-      document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
       var auswaehlenCheckbox = document.querySelector('input#auswaehlenCheckbox');
       var neuBeantragenCheckboxes = document.querySelectorAll('input#neuBeantragen');
 

@@ -147,7 +147,7 @@ document.getElementById('uploadFormRegister').addEventListener('submit', functio
 
     
 
-function funktionFleacheSollBearbeitetWerden(userid) {
+function funktionFleacheSollBearbeitetWerden(dateValue, userid) {
   const selectedProducts = [];
   const rows = document.querySelectorAll('tr');
   document.getElementById('loadingIndicatorProbeMussGezogenWerden').style.display = 'block';
@@ -192,6 +192,7 @@ function funktionFleacheSollBearbeitetWerden(userid) {
     if (neuBeantragenCheckbox.checked) {
       const productInfo = {
         productId: productIdRow,
+        dateValue: dateValue,
         //flaechenname: flaechennameValue,
         NminValue: MangatValue,
         SminValue: EminValue,
@@ -319,6 +320,7 @@ if (coordinates.length > 2) {
       var info = this.options.info;
       const neuBeantragenCheckbox = document.querySelector('input[name=neuBeantragen'+info+']');
 
+      
       if (neuBeantragenCheckbox.checked) {
         neuBeantragenCheckbox.checked = false;                        
       } else {
