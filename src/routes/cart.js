@@ -46,12 +46,12 @@ router.post('/login',passport.authenticate('local',{
 })
 
 router.delete('/logout', function(req, res, next) {
-    req.logout(function(err) {
-      if (err) { return next(err); }
-      req.flash('success','Erfolgreich Ausgelogt')
-      res.redirect('/');
-    });
+  req.logout(function(err) {
+    if (err) { return next(err); }
+    req.flash('success','Erfolgreich Ausgelogt')
+    res.redirect('/');
   });
+});
 
 
 
