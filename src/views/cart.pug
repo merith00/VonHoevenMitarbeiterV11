@@ -3,31 +3,55 @@ extends layout
 block content
     .container-fluid.secondary-backgroundcolor.flex-grow-1.text-center
         .row(style="height:100%;")
-            .col-sm-auto.align-items-center.d-flex.g-3
-                table.table.table-bordered
-                    thead
-                        tr.primary-backgroundcolor
-                            th.secondary-color(colspan="2", scope="col") Filter
-                    tbody
-                    tr.table-light
-                        td  <sup>N</sup><sub>min</sub>
-                        td
-                            input(type='checkbox', name='filterNmin', value='1', checked) 
-                    tr.table-light
-                        td  <sup>S</sup><sub>min</sub>
-                        td
-                            input(type='checkbox', name='filterSmin', value='2', checked) 
-                    tr.table-light
-                        td Humus
-                        td
-                            input(type='checkbox', name='filterHumus', value='3', checked) 
-                    tr.table-light
-                        td C/N
-                        td       
-                            input(type='checkbox', name='filterCN', value='4', checked)
+            .col-sm-auto.align-items-center.g-3.vertical-center
+                .row.ml-2 
+                    table.table.table-bordered
+                        thead
+                            tr.primary-backgroundcolor
+                                th.secondary-color() Stichtag
+                        tbody
+                            tr.table-light
+                                td 
+                                    .form-check
+                                        input.form-check-input(type='radio', name='winterung', id='filterWinterung' , checked)
+                                        label.form-check-label(for='winterung2') Winterung
+                            tr.table-light
+                                td 
+                                    .form-check
+                                        input.form-check-input(type='radio', name='winterung' , id='filterFSommerung', unchecked)
+                                        label.form-check-label(for='winterung2') Frühe Sommerung
+                            tr.table-light
+                                td 
+                                    .form-check
+                                        input.form-check-input(type='radio', name='winterung', id='filterSSommerung', unchecked)
+                                        label.form-check-label(for='winterung2') Späte Sommerung
+
+                .row.ml-2 
+                    table.table.table-bordered
+                        thead
+                            tr.primary-backgroundcolor
+                                th.secondary-color(colspan="2", scope="col") Filter
+                        tbody
+                            tr.table-light
+                                td  <sup>N</sup><sub>min</sub>
+                                td
+                                    input(type='checkbox', name='filterNmin', value='1', checked) 
+                            tr.table-light
+                                td  <sup>S</sup><sub>min</sub>
+                                td
+                                    input(type='checkbox', name='filterSmin', value='2', checked disabled) 
+                            tr.table-light
+                                td Humus
+                                td
+                                    input(type='checkbox', name='filterHumus', value='3', checked disabled) 
+                            tr.table-light
+                                td C/N
+                                td       
+                                    input(type='checkbox', name='filterCN', value='4', checked disabled)
             .col.flex.align-items-center
                 .container-fluid.vertical-center
                     div#map(style='width: 100%; height: 95%;')
+
 
     #exampleModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
         .modal-dialog.modal-dialog-centered(role='document')
@@ -138,6 +162,7 @@ block content
         document.getElementById('datepicker').value = todayFormatted;
 
         function fleachwurdenBearbeitet(dateValue,userID) {
+            console.log('die userid : ' + userID)
             const selectedProducts = [];
             for (let index = 0; index < includedFlaechen.length; index++) {
                 var EminValue = 'n';
@@ -164,8 +189,11 @@ block content
         
         
                 //TODO HIER EINTRAGEN WENN INPUT GEÄNDERT WIRD DATE MUSS AUCH!!!
+
+                console.log('userid:'+ includedFlaechen[index].kundennummer)
             
                     const productInfo = {
+                        kundennummer: includedFlaechen[index].kundennummer,
                         productId: includedFlaechen[index].flaechenID,
                         //flaechenname: flaechennameValue,
                         dateValue: dateValue,
@@ -295,7 +323,7 @@ block content
             map.eachLayer(function (layer) {
                 if (layer instanceof L.Polygon) {
                     if (isInnerPolygonInsideOuterPolygon(layer, layerEingezeichnet)) {                        
-                        var fleachenErstellt = { flaechenID: layer.options.info.probenNr, nmin: layer.options.info.nminGzogen, smin: layer.options.info.sminGzogen, humus: layer.options.info.humusGzogen, cn: layer.options.info.cnGzogen};
+                        var fleachenErstellt = { flaechenID: layer.options.info.probenNr, kundennummer: layer.options.info.kundenNr, nmin: layer.options.info.nminGzogen, smin: layer.options.info.sminGzogen, humus: layer.options.info.humusGzogen, cn: layer.options.info.cnGzogen};
                         includedFlaechen.push(fleachenErstellt);
                     }  
                 }

@@ -1,5 +1,5 @@
 
-var colorArt = '#b9f700', coordinates = [], flaechenID = 0, infos, dargestellteFleachen = [];
+var colorArt = '#b9f700', coordinates = [], flaechenID = 0, kundenID = 0, infos, dargestellteFleachen = [];
 const filterNminValue = document.querySelector('[name="filterNmin"]');
 const filterminValue = document.querySelector('[name="filterSmin"]');
 const filterHumusValue = document.querySelector('[name="filterHumus"]');
@@ -11,12 +11,25 @@ filterminValue.addEventListener('change', setUpdateMap);
 filterHumusValue.addEventListener('change', setUpdateMap);
 filterCNValue.addEventListener('change', setUpdateMap);
 
+
+const filterWinterung = document.querySelector('[id="filterWinterung"]');
+const filterFSommerung = document.querySelector('[id="filterFSommerung"]');
+const filterSSommerung = document.querySelector('[id="filterSSommerung"]');
+
+
+filterWinterung.addEventListener('change', setUpdateMap);
+filterFSommerung.addEventListener('change', setUpdateMap);
+filterSSommerung.addEventListener('change', setUpdateMap);
+
 function setUpdateMap(){
-    updateMap(filterNminValue,filterminValue,filterHumusValue,filterCNValue)
+    mapLoeschen();
+    updateMapFilter(filterNminValue,filterminValue,filterHumusValue,filterCNValue)
+    updateMapStartdatum(filterWinterung,filterFSommerung,filterSSommerung)
+    dargestellteFleachen = [];
+
 }
 
-function updateMap(filterNminValue,filterSminValue,filterHumusValue,filterCNValue){
-    mapLoeschen();
+function updateMapFilter(filterNminValue,filterSminValue,filterHumusValue,filterCNValue){
 
 
     if (filterNminValue.checked) {
@@ -28,6 +41,7 @@ function updateMap(filterNminValue,filterSminValue,filterHumusValue,filterCNValu
         setCoordinates(coordinates, infos);
         coordinates = [];
         flaechenID = 0;
+        kundenID = 0;
         info = '';
     } 
     
@@ -40,6 +54,7 @@ function updateMap(filterNminValue,filterSminValue,filterHumusValue,filterCNValu
         setCoordinates(coordinates, infos);
         coordinates = [];
         flaechenID = 0;
+        kundenID = 0;
         info = '';
     } 
     
@@ -52,6 +67,7 @@ function updateMap(filterNminValue,filterSminValue,filterHumusValue,filterCNValu
         setCoordinates(coordinates, infos);
         coordinates = [];
         flaechenID = 0;
+        kundenID = 0;
         info = '';
     } 
     
@@ -64,18 +80,85 @@ function updateMap(filterNminValue,filterSminValue,filterHumusValue,filterCNValu
         setCoordinates(coordinates, infos);
         coordinates = [];
         flaechenID = 0;
+        kundenID = 0;
         info = '';
     }
 
-    dargestellteFleachen = [];
+}
+
+function updateMapStartdatum(filterWinterung,filterFSommerung,filterSSommerung){
+    if (filterWinterung.checked) {
+        coordinatesArray.forEach(function (fleachenStueck) {
+            if(fleachenStueck.BEARBEITUNGSARTID === 1 ){
+                //coordinatesArrayDurchlaufen(fleachenStueck)
+            } else {
+                if (dargestellteFleachen.includes(fleachenStueck.ARTIKELNR)) {
+                    map.eachLayer(function (layer) {
+                        if (layer instanceof L.Polygon && layer.options.info.probenNr === fleachenStueck.ARTIKELNR) {
+                            map.removeLayer(layer);
+                        }
+                    });
+                }
+            }
+        });
+        setCoordinates(coordinates, infos);
+        coordinates = [];
+        flaechenID = 0;
+        kundenID = 0;
+        info = '';
+    } 
+
+    
+    if (filterFSommerung.checked) {
+        coordinatesArray.forEach(function (fleachenStueck) {
+            if(fleachenStueck.BEARBEITUNGSARTID === 2){
+               // coordinatesArrayDurchlaufen(fleachenStueck)
+            } else {
+                if (dargestellteFleachen.includes(fleachenStueck.ARTIKELNR)) {
+                    map.eachLayer(function (layer) {
+                        if (layer instanceof L.Polygon && layer.options.info.probenNr === fleachenStueck.ARTIKELNR) {
+                            map.removeLayer(layer);
+                        }
+                    });
+                }
+            }
+        });
+        setCoordinates(coordinates, infos);
+        coordinates = [];
+        flaechenID = 0;
+        kundenID = 0;
+        info = '';
+    } 
+    
+    
+    if (filterSSommerung.checked) {
+        coordinatesArray.forEach(function (fleachenStueck) {
+            if(fleachenStueck.BEARBEITUNGSARTID === 3){
+               // coordinatesArrayDurchlaufen(fleachenStueck)
+            } else {
+                if (dargestellteFleachen.includes(fleachenStueck.ARTIKELNR)) {
+                    map.eachLayer(function (layer) {
+                        if (layer instanceof L.Polygon && layer.options.info.probenNr === fleachenStueck.ARTIKELNR) {
+                            map.removeLayer(layer);
+                        }
+                    });
+                }
+            }
+        });
+        setCoordinates(coordinates, infos);
+        coordinates = [];
+        flaechenID = 0;
+        kundenID = 0;
+        info = '';
+    } 
 }
 
 function coordinatesArrayDurchlaufen(fleachenStueck){
-    if (flaechenID === fleachenStueck.ARTIKELNR) {
+    if (flaechenID === fleachenStueck.ARTIKELNR && kundenID === fleachenStueck.KUNDENNUMMER) {
         coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
         infos = { probenNr: fleachenStueck.ARTIKELNR,
             kundenNr: fleachenStueck.KUNDENNUMMER,
-            beprobenAb: fleachenStueck.STARTDATUM,
+            beprobenAb: fleachenStueck.ABDATUM,
             nutzung: fleachenStueck.FLEACHENART,
             schlagBz: fleachenStueck.FLAECHENNAME,
             nminGzogen: fleachenStueck.enthält_nmin,
@@ -87,6 +170,7 @@ function coordinatesArrayDurchlaufen(fleachenStueck){
     } else {
         setCoordinates(coordinates, infos);
         flaechenID = fleachenStueck.ARTIKELNR;
+        kundenID = fleachenStueck.KUNDENNUMMER;
         coordinates = [[fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]];
         infos = '';
     }  
@@ -96,7 +180,7 @@ function coordinatesArrayDurchlaufen(fleachenStueck){
 
 function setColor(probenstatus){
     if (probenstatus === 1) {
-        colorArt = 'blue';
+        colorArt = 'red';
     } else {
         colorArt = '#b9f700';
     }
@@ -105,14 +189,10 @@ function setColor(probenstatus){
 function setCoordinates(coordinates, infos){
 
     if (coordinates.length > 2 && !dargestellteFleachen.includes(infos.probenNr) ) {
-        if(dargestellteFleachen.includes(infos.probenNr)){
-            console.log('HIER')
-        }
-
         var polygon = L.polygon(coordinates, {
             color: colorArt,
             fillColor: colorArt,
-            fillOpacity: 0.4,
+            fillOpacity: 0.6,
             info: infos,
         }).addTo(map);
 
@@ -159,6 +239,7 @@ function setCoordinates(coordinates, infos){
             document.getElementById('fleachenGroesse').textContent = area;
             $('#exampleModalCenter').modal('show');
         });
+
 
 
         dargestellteFleachen.push(infos.probenNr);

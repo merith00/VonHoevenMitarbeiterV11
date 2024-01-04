@@ -16,12 +16,19 @@ const getUpdateDatenVomKunden = require('../database/oracle').getUpdateDatenVomK
 const kundenzumloeschen = require('../database/oracle').kundenzumloeschen
 
 var path = require('path');
+
+
+
+
+
+
 const tokml = require('tokml');
 
 const getInformationsForGenerateKmlFile = require('../database/oracle').getInformationsForGenerateKmlFile
 const funktionFleacheSollBearbeitetWerden = require('../database/oracle').funktionFleacheSollBearbeitetWerden
 
 var getNoticitcation = ''
+
 
 const shapefile = require('shapefile'); // Diese Bibliothek kann Shapefiles lesen
 const { DOMParser } = require('xmldom');
@@ -30,7 +37,11 @@ const fileUpload = require('express-fileupload');
 const JSZip = require('jszip');
 const proj4 = require('proj4');
 const { createCanvas, loadImage } = require('canvas');
+
+//const togeojson = require('@mapbox/togeojson');
 const fs = require('fs');
+
+
 const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -47,7 +58,7 @@ router.post('/upload', async (req, res) => {
     handleReadFile(req.files.sampleFile,res,req,false,0)
   } catch (error) {
     console.log(error)
-    handleResponse(123,res)
+    handleResponse(400,res)
   }
 });
 
@@ -56,7 +67,7 @@ router.post('/uploadFormRegister', async (req, res) => {
     handleReadFile(req.files.sampleFile,res,req,true,0)
   } catch (error) {
     console.log(error)
-    handleResponse(123,res,0)
+    handleResponse(400,res,0)
   }
 });
 
@@ -82,6 +93,7 @@ router.post('/uploadMehrereKunden', async (req, res) => {
   }
 });
 
+
 function setBearbeiteteDateiEinenHoeher(){
   bearbeiteteDatei = bearbeiteteDatei+1;
 }
@@ -93,6 +105,8 @@ function setBearbeiteteDateiWiederAufEins(){
 function getBearbeiteteDateiEinenHoeher(){
   return bearbeiteteDatei;
 }
+
+
 
 function handleReadFile(file,res,req,register,anzahldateien) {
   const ext = file.name.split('.').pop().toLowerCase(); // Erweiterung der Datei
@@ -117,16 +131,15 @@ function handleReadFile(file,res,req,register,anzahldateien) {
   }
 }
 
-//TODO IDS AN DIE KUNDEN KNÜPFEN UND DIE RICHTIGEN IDS EINFÜGEN
 function readDataFromKMLFile(file, res,req, selectedOption, register) {
   const kmlData = file.data.toString('utf8');
   const xmlDoc = new DOMParser().parseFromString(kmlData);
   const geoJSON = togeojson.kml(xmlDoc);
-  console.log( JSON.stringify(geoJSON) );
-
-  console.log('geojsn ')
   onHightLight(geoJSON, res,req,selectedOption, register)
 }
+
+
+
 
 router.get('/', async function(req, res, next) {
   if (req.isAuthenticated()) {
@@ -142,6 +155,9 @@ router.get('/', async function(req, res, next) {
 
   res.render('', { title: 'Express', login: false });
 });
+
+
+
 
 function setKundenID(KundenID){
   theKundenID = KundenID;
@@ -165,21 +181,32 @@ function setProduktIDFORIFNOPRODUKTIDVorgegebenWiederAufNull(uebergabe){
 
 router.get('/:category', async (req,res)=>{
     if(req.isAuthenticated()){
-      const userID = req.params.category
-      const cartFromUser = await getBestllungenFromUser(userID)
-      //const fleachenFromUser = await getfleachenFromUser(userID)
-      const kundenDatenVomAusgewaehltenUser = await getkundenDatenVomAusgewaehltenUser(userID)
-      var hatkeinenWarenkorb = false;
-      if(cartFromUser.products.length == 0){
-        hatkeinenWarenkorb = true;
-      }
+        const userID = req.params.category
+        const cartFromUser = await getBestllungenFromUser(userID)
+        const fleachenFromUser = await getfleachenFromUser(userID)
+        const kundenDatenVomAusgewaehltenUser = await getkundenDatenVomAusgewaehltenUser(userID)
 
-      setKundenID(userID)
-      const FleachenFromUserBestellt = await getFleachenFromUserBestellt(userID)
-      artikelNrFromCart = []
-      res.render('productsByCategory',{title: 'Webshop', dieUserID: userID, kundenDatenVomAusgewaehltenUser: kundenDatenVomAusgewaehltenUser, hatkeinenWarenkorb: hatkeinenWarenkorb, UserCart: cartFromUser, FleachenBestellt: FleachenFromUserBestellt, login: true}) // mit CategoryRequested kann man evtl. die Kategorie in der Auswahlleiste farbig hinterlegen
-    } else {
-      res.redirect('/')
+
+
+        var hatkeinenWarenkorb = false;
+
+
+
+        if(cartFromUser.products.length == 0){
+          hatkeinenWarenkorb = true;
+        }
+
+
+
+        setKundenID(userID)
+
+        const FleachenFromUserBestellt = await getFleachenFromUserBestellt(userID)
+        artikelNrFromCart = []
+
+
+        res.render('productsByCategory',{title: 'Webshop', dieUserID: userID, kundenDatenVomAusgewaehltenUser: kundenDatenVomAusgewaehltenUser, hatkeinenWarenkorb: hatkeinenWarenkorb, UserCart: cartFromUser, FleachenBestellt: FleachenFromUserBestellt,  Fleachen: fleachenFromUser, login: true}) // mit CategoryRequested kann man evtl. die Kategorie in der Auswahlleiste farbig hinterlegen
+    }else{
+        res.redirect('/')
     }
 })
 
@@ -276,9 +303,18 @@ async function InfoToKMLFile(infoProductIDs, res) {
   </kml>`;
   
   const kml = tokml(geojson, kmlOptions);
+
   console.log(kml)
+  
+  
+
+
   return xmlString
+
+
+
 }
+
 
 router.put('/generateKmlFile', async (req,res) => {
   if(req.isAuthenticated()){
@@ -290,6 +326,12 @@ router.put('/generateKmlFile', async (req,res) => {
       res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
       res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml');
       res.status(200).send(xmlString);
+
+
+      //const filePath = path.join(__dirname, 'output.kml');
+      //await fs.promises.writeFile(filePath, kml);
+
+
     } catch (error) {
       console.error('Fehler:', error);
       res.status(500).send('Fehler beim Hinzufügen zuWarenkorb.');
@@ -343,8 +385,10 @@ router.put('/ProbeWurdeGezogen', async (req,res) => {
     } catch (error) {
       console.error('Fehler:', error);
     }
-  } 
+  }
 });
+
+
 
 router.put('/gerateAllInformations', async (req,res) => {
   if(req.isAuthenticated()){
@@ -425,10 +469,12 @@ function convertTOWGSTransverseMercator(geojson) {
   return geojson;
 }
 
+
+
 async function readDataFromZipFile(file, res, req, selectedOption, register, anzahldateien) {
   try {
     const zip = new JSZip();
-    
+    //const zipData = await zip.loadAsync(req.files.sampleFile.data);
     const zipData = await zip.loadAsync(file.data);
 
     const shpFileZip = Object.values(zipData.files).find((file) =>
@@ -443,21 +489,12 @@ async function readDataFromZipFile(file, res, req, selectedOption, register, anz
       file.name.toLowerCase().endsWith('.prj')
     );
 
-    /*const cpgFileZip = Object.values(zipData.files).find((file) =>
-      file.name.toLowerCase().endsWith('.cpg')
-    );*/
-
     const shpBuffer = await shpFileZip.async('nodebuffer');
     const prjBuffer = await prjFileZip.async('nodebuffer');
     const dbfBuffer = await dbfFileZip.async('nodebuffer');
-    //const cpgBuffer = await cpgFileZip.async('nodebuffer');
-
-
 
 
     var geojson = await shapefile.read(shpBuffer, dbfBuffer);
-
-
 
 
     if(isGaus(prjBuffer)){
@@ -466,7 +503,6 @@ async function readDataFromZipFile(file, res, req, selectedOption, register, anz
       geojson = convertTOWGSTransverseMercator(geojson);
     }
 
-    console.log( JSON.stringify(geojson) );
     onHightLight(geojson, res, req, selectedOption, register, anzahldateien)
 
   } catch (error) {
@@ -491,46 +527,38 @@ function isGaus(prjContent){
 }
 
 function isTransverseMercator(prjContent){
-  if (prjContent.includes('PROJECTION["Transverse_Merca')) {
+  if (prjContent.includes('PROJECTION["Transverse_Mercator"]')) {
     return true;
   } else {
       return false;
   }
 }
 
+
+
 async function onHightLight(data, res,req,selectedOption,register , anzahldateien) {
   var password = '';
+
   if (!req.body.password) {
+    // Wenn nicht definiert oder leer, setze password auf "s"
     password = 's';
   } else {
+    // Andernfalls verwende das übergebene Passwort
     password = req.body.password;
   }
-
-  console.log('anazahldati ' + anzahldateien)
 
 
   if(anzahldateien>1){
     var uebergebeneDaten = []
 
     data.features.forEach(feature => {
-    
-
-
-      var schlagBez = getFirstNonNull(feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM);
-      schlagBez = Buffer.from(schlagBez, 'latin1').toString('utf-8');
-      var FleachenID = getFirstNonNull(feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID);
+      var schlagBez = feature.properties.SCHLAGBEZ; 
       var dateValue = feature.properties.BEPROBENAB;
+      var FleachenID = feature.properties.KUNDEN_NR + '' +  feature.properties.PROBEN_NR + '' + feature.properties.SCHLAGNR;
+      var Kundennummer = feature.properties.KUNDEN_NR;
       var NUTZUNG = feature.properties.NUTZUNG
 
-      var KUNDEN_NR = data.features[0].properties.KUNDEN_NR;
-      if (KUNDEN_NR === undefined || KUNDEN_NR === null) {
-        KUNDEN_NR = data.features[0].properties.AUFTRAGGEB;
-      }
-
-      if(KUNDEN_NR === undefined && selectedOption > 1){
-        KUNDEN_NR = req.body.kundenid
-      }      
-
+  
       if (NUTZUNG) {
       } else {
         NUTZUNG='0';
@@ -564,10 +592,11 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
       
       }
 
-      console.log('DIE KUNDENUMRE ' + KUNDEN_NR)
+
+      
       
       const requestData = {
-        USERID: KUNDEN_NR,
+        USERID: Kundennummer,
         productid: FleachenID,
         flaechenname: schlagBez,
         dateValue: dateValue,
@@ -578,9 +607,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
         imageElement: image,
         fleachenart: NUTZUNG,
         tiefenValue: 1,
-        selectedOption : selectedOption,
-        selectedOptionWinterung : req.body.selectedOptionWinterung
-       
+        selectedOption : selectedOption         
       };
       uebergebeneDaten.push(requestData)
     });
@@ -600,30 +627,22 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
 
     }
   } else {
+
     var statuscodeEinKunde = 100;
 
     if(register){
       try {
-        var KUNDEN_NR = data.features[0].properties.KUNDEN_NR;
-        if (KUNDEN_NR === undefined || KUNDEN_NR === null) {
-          KUNDEN_NR = data.features[0].properties.AUFTRAGGEB;
-        }
-
-        if(KUNDEN_NR === undefined && selectedOption > 1){
-          KUNDEN_NR = req.body.kundenid
-        }      
 
         const hashedPassword = await bcrypt.hash(password, 10)
-        const result  = await registerUserWithFleachen(KUNDEN_NR, req.body.email, req.body.telefonnummer, hashedPassword,req.body.vorname, req.body.nachname,req.body.date,req.body.ort, req.body.plz, req.body.strasse, req.body.hausnummer, selectedOption)
+        const result  = await registerUserWithFleachen(data.features[0].properties.KUNDEN_NR, req.body.email, req.body.telefonnummer, hashedPassword,req.body.vorname, req.body.nachname,req.body.date,req.body.ort, req.body.plz, req.body.strasse, req.body.hausnummer, selectedOption)
         setKundenID(result.kundennummer)
         
         if(result.statusCode===123){
           statuscodeEinKunde = 123;
         }
-
        } catch (error) {
         console.log(error)
-        res.sendStatus(400)   
+        res.sendStatus(500)   
        }
     }
 
@@ -632,44 +651,27 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
       handleResponse(statuscodeEinKunde, res, 0);
     } else {
       if (data.features[0].properties.KUNDEN_NR === parseInt(getKundenID(), 10) || !data.features[0].properties.KUNDEN_NR) {
-        createTheBestellung(parseInt(getKundenID(), 10), data.features.length)
+        createTheBestellung(parseInt(getKundenID(), 10))
 
         var uebergebeneDaten = []
 
         data.features.forEach(feature => {
-
-          var schlagBez = getFirstNonNull(feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM);
-          schlagBez = Buffer.from(schlagBez, 'latin1').toString('utf-8');
-          
-          var FleachenID = getFirstNonNull(feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID);
+          var schlagBez = feature.properties.SCHLAGBEZ; 
           var dateValue = feature.properties.BEPROBENAB;
-
-          console.log(FleachenID)
-
-
-
-
-
-          /*var FleachenID = feature.properties.KUNDEN_NR + '' +  feature.properties.PROBEN_NR + '' + feature.properties.SCHLAGNR;
-
-
-          FleachenID = feature.properties.SCHLAG_NR
-
-          console.log(FleachenID + 'hier')
-    
-
-
-          if(FleachenID === 'undefinedundefinedundefined' ||FleachenID === null || FleachenID === ''){
-            FleachenID = feature.properties.FL_ID
-          }*/
-
+          var FleachenID = feature.properties.KUNDEN_NR + '' +  feature.properties.PROBEN_NR + '' + feature.properties.SCHLAGNR;
           var Kundennummer = getKundenID();
           var NUTZUNG = feature.properties.NUTZUNG
 
 
-          if (!FleachenID) {
+          if (feature.properties.PROBEN_NR && feature.properties.SCHLAGNR ) {
+          } else {
             FleachenID=getKundenID() + '' + getProduktIDFORIFNOPRODUKTIDVorgegeben()
             setProduktIDFORIFNOPRODUKTIDVorgegeben(1);
+          }
+
+          if (Kundennummer) {
+          } else {
+            Kundennummer=0;
           }
 
           if (NUTZUNG) {
@@ -677,6 +679,10 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
             NUTZUNG='0';
           }
         
+          if (schlagBez) {
+          } else {
+            schlagBez='0';
+          }
 
           if (dateValue) {
           } else {
@@ -698,7 +704,8 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
             }
             image = createImg(coordinatesArray)
           } else {
-            console.error('Fehler: feature.geometry oder feature.geometry.coordinates sind nicht definiert zwqeitee stellse');
+            //console.error('Fehler: feature.geometry oder feature.geometry.coordinates sind nicht definiert zwqeitee stellse');
+          
           }
 
 
@@ -715,8 +722,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
             imageElement: image,
             fleachenart: NUTZUNG,
             tiefenValue: 1,
-            selectedOption : selectedOption,
-            selectedOptionWinterung : req.body.selectedOptionWinterung
+            selectedOption : selectedOption         
           };
           uebergebeneDaten.push(requestData)
         });
@@ -737,18 +743,9 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
   }
 }
 
-function getFirstNonNull(...values) {
-  for (const value of values) {
-    if (value !== undefined && value !== null) {
-      return value;
-    }
-  }
-  return 'null';
-}
-
-async function createTheBestellung(userid,anzahlpositionen){
+async function createTheBestellung(userid){
   try {
-    const maxProduktnummerVomKunden = await createBestellung(userid,anzahlpositionen);
+    const maxProduktnummerVomKunden = await createBestellung(userid);
     setProduktIDFORIFNOPRODUKTIDVorgegeben(maxProduktnummerVomKunden.productID)
     return maxProduktnummerVomKunden
   } catch (error) {
@@ -756,6 +753,9 @@ async function createTheBestellung(userid,anzahlpositionen){
   }
 }
 
+
+
+//TODO: auf 200 setzen 
 function handleResponse(status, res, userID) {
   try{
     if (status === 200) {
@@ -788,13 +788,23 @@ function handleResponse(status, res, userID) {
     }
   } catch (error) {
     console.log('Es gab wohl einen Fehler: ' + error)
-    res.redirect('/products')
+    const div = document.createElement('div');
+    div.classList.add('notificationred');
+    const p = document.createElement('p');
+    p.textContent = 'Fehler!';
+    div.appendChild(p);
+    document.body.appendChild(div);
+    window.location.href = '/products'; // Ändere die URL entsprechend deiner Seite 
   }
 }
 
+
 function createImg(coordinatesArrayIMG){
+
+
   const canvas = createCanvas();
   const context = canvas.getContext('2d');
+
   const minLatitude = Math.min(...coordinatesArrayIMG.map(coord => coord[1]));
   const maxLatitude = Math.max(...coordinatesArrayIMG.map(coord => coord[1]));
   const minLongitude = Math.min(...coordinatesArrayIMG.map(coord => coord[0]));

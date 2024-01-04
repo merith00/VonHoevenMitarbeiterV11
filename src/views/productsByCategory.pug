@@ -39,7 +39,7 @@ block content
                       each product in UserCart.products
                         tr.table-secondary
                           td(name=product.ARTIKELNR)
-                            if(product.FLAECHENNAME == 0)
+                            if(product.FLAECHENNAME == "null")
                               p= product.ARTIKELNR
                             else
                               p= product.FLAECHENNAME
@@ -52,15 +52,12 @@ block content
                             input.normal#CheckboxStickstoff(type='checkbox', name='CheckboxStickstoff'+product.ARTIKELNR, value=(product.statusstickstoff), checked=(product.enthält_stickstoff === 'J'), disabled ='true')
                           td.bestellung
                             input.normal#CheckboxCn(type='checkbox', name='CheckboxCn'+product.ARTIKELNR, value=(product[14]), checked=(product[14] === 1), disabled ='true')
-                          - if (product.STARTDATUM)
-                            - if(product.statusmangat === 1)
-                              td ab
-                                p= product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                            - else 
+                          - if (product.STARTDATUM && product.statusmangat === 3)
                               td am
-                                p= product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                          - else
-                            td= 'No Date'
+                                p= product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit'})
+                          - else 
+                              td ab
+                                p= product.ABDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit'})
                           td.tdright
                             input#neuBeantragen(type='checkbox', name='neuBeantragen'+product.ARTIKELNR, value='1')
                              
@@ -212,7 +209,7 @@ block content
   
   script.
     var coordinatesArrayBestellt = !{JSON.stringify(FleachenBestellt)};
-    var coordinatesArrayImWarenkorb = !{JSON.stringify(Fleachen)};
+    //var coordinatesArrayImWarenkorb = !{JSON.stringify(Fleachen)};
     var kundenDatenVomAusgewaehltenUser = !{JSON.stringify(kundenDatenVomAusgewaehltenUser)};
 
     var date = new Date(kundenDatenVomAusgewaehltenUser.GEBURTSDATUM);

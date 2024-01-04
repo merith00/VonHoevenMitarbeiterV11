@@ -15,6 +15,10 @@ block content
 
   .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor
     .container(id='tabContent' style='width: 100%; height: 85%')
+      .row(id='tabContent' style='width: 100%;')
+        .col-2
+            input(type='checkbox', id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
+            label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
       ul.nav.nav-tabs.secondary-backgroundcolor.h5
         li.nav-item
           a.nav-link.nav-linkTable(data-toggle='tab' href='#lufa' data-tab-id='lufa') Lufa
@@ -28,13 +32,10 @@ block content
           a.nav-link.nav-linkTable(data-toggle='tab' href='#maehlmann' data-tab-id='maehlmann') Mählmann
         li.nav-item
           a.nav-link.nav-linkTable(data-toggle='tab' href='#sonstiges' data-tab-id='sonstiges') Sonstiges
-        li.nav-item.vertical-centerCheckbox.float-right(style='padding-left: 100px')
-          input(type='checkbox', id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
-          label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
       .tab-content.text-center
         #lufa.tab-pane.fade.show.active
           #lufa-table.table-container.table-responsive(style="max-height: 60vh; overflow-y: auto;")
-            table.table.table-bordered
+            table#example.table.table-striped.autoTable
               thead
                 tr.primary-backgroundcolor
                   th.secondary-color(scope="col") ID
@@ -194,6 +195,10 @@ block content
   
 
     .container(id='tabContentZuZiehen' style='width: 100%; height: 85%')
+      .row(id='tabContent' style='width: 100%;')
+        .col-2
+          input(type='checkbox', id='nurZuZiehendeKundenAnzeigen', name='nurZuZiehendeKundenAnzeigen')
+          label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
       ul.nav.nav-tabs.secondary-backgroundcolor.h5
         li.nav-item
           a.nav-link.nav-linkTable(data-toggle='tab' href='#lufaZuZiehen' data-tab-id='lufa') Lufa
@@ -207,9 +212,6 @@ block content
           a.nav-link.nav-linkTable(data-toggle='tab' href='#maehlmannZuZiehen' data-tab-id='maehlmann') Mählmann
         li.nav-item
           a.nav-link.nav-linkTable(data-toggle='tab' href='#sonstiges' data-tab-id='sonstiges') Sonstiges
-        li.nav-item.vertical-centerCheckbox.float-right(style='padding-left: 100px')
-          input(type='checkbox', id='nurZuZiehendeKundenAnzeigen', name='nurZuZiehendeKundenAnzeigen')
-          label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
       .tab-content.text-center
         #lufaZuZiehen.tab-pane.fade.show.active
           #lufa-table.table-container.table-responsive(style="max-height: 60vh; overflow-y: auto;")
@@ -401,21 +403,35 @@ block content
   #exampleModalCenterEinKunde.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
     .modal-dialog.modal-dialog-centered(role='document')
       .modal-content.neutral-backgroundcolor
-        // Modal-Header
         .modal-header
-          h5#exampleModalLongTitle.modal-title.text-white Kunden hinzuf&uuml;gen
+          h5#exampleModalLongTitle.modal-title.text-white Kunden hinzufügen
           button.close(type='button' data-dismiss='modal' aria-label='Close')
             span(aria-hidden='true') &times;
-        // Modal-Body
         .modal-body
           form(ref='uploadFormRegister' action='/products/uploadFormRegister' method='post' enctype='multipart/form-data')
+            .row
+              .col-md-6
+                .form-group
+                  select#selectedOption.form-control(name='selectedOption' onchange='checkSelectedOption(this)')
+                    option(value='1') Lufa
+                    option(value='2') CLAAS
+                    option(value='3') GSAgri 
+                    option(value='4') LWK-Niedersachsen
+                    option(value='5') Mählmann
+                    option(value='6') Sonstiges
+              .col-md-6
+                .form-group
+                  select#selectedOptionWinterung.form-control(name='selectedOptionWinterung')
+                    option(value='1') Ab 01.01 Winterung
+                    option(value='2') Ab 15.02 Frühe Sommerung
+                    option(value='3') Ab 15.03 Späte Sommerung 
             .row
               .col-md-6
                 .form-group
                   input.form-control(type='text' placeholder='Vorname' name='vorname')
               .col-md-6
                 .form-group
-                  input.form-control(type='text' placeholder='Nachname' name='nachname')
+                  input.form-control(type='text' placeholder='Nachname' name='nachname' )
             .row
               .col-md-6
                 .form-group
@@ -440,27 +456,16 @@ block content
             .row
               .col-md-6
                 .form-group
-                  input.form-control(type='date' name='date' placeholder='Geburtsdatum') 
+                  input.form-control(type='number' id='kundenid' name='kundenid' placeholder='KundenID' disabled)
               .col-md-6
                 .form-group
-                   input.form-control(type='password' placeholder='Passwort' name='password' ) 
-  
-            .form-group
-              select#selectedOption.form-control(name='selectedOption')
-                option(value='1') Lufa
-                option(value='2') CLAAS
-                option(value='3') GSAgri 
-                option(value='4') LWK-Niedersachsen
-                option(value='5') M&auml;hlmann
-                option(value='6') Sonstiges
+                  input.form-control(type='password' placeholder='Passwort' name='password' ) 
             .input-group.mb-3
               input.input-group-text(type='file', name='sampleFile', accept=".kml,.geojson,.shp,.zip")               
-
-            // Hier können Sie den Inhalt des Modals hinzufügen
-            // Modal-Footer
             .modal-footer
               input.btn-primary.button.btn(type='submit', value='Hochladen!')
-  
+
+
   #kundenwirklichloeschen.modal.fade(tabindex='-1' role='dialog' aria-labelledby='kundenwirklichloeschen' aria-hidden='true')
     .modal-dialog.modal-dialog-centered(role='document')
       .modal-content.neutral-backgroundcolor
@@ -474,6 +479,22 @@ block content
 
   
   script.
+  
+
+      function checkSelectedOption(selectElement) {
+        var kundenIdInput = document.getElementById('kundenid');
+        if (selectElement.value === '1') {
+          kundenIdInput.disabled = true;
+          kundenIdInput.required = false;
+        } else {
+          kundenIdInput.disabled = false;
+          kundenIdInput.required = true;
+
+        }
+      }
+
+
+  
 
     document.getElementById('nurZuZiehendeKunden').addEventListener('change', function() {
       var checked = this.checked;

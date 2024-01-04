@@ -1,4 +1,18 @@
 //TODO: RELOAD ERSR NACHDEM DURCHGELAUFEN IST
+function checkSelectedOption() {
+  console.log('FFFF')
+  var selectedOption = document.getElementById('selectedOption');
+  var kundenIdInput = document.getElementById('kundenid');
+
+  if (selectedOption.value === '1') {
+    kundenIdInput.disabled = true;
+  } else {
+    kundenIdInput.disabled = false;
+  }
+}
+
+
+
 
 //wird genutzt
 function kmlerstellen(kundenummer) {
@@ -93,7 +107,8 @@ function ProbeWurdeGezogen(dateValue,userID) {
         NminValue: MangatValue,
         SminValue: EminValue,
         HumusValue: StickstoffValue,
-        CnValue: CheckboxCnValue
+        CnValue: CheckboxCnValue,
+        kundennummer: userID
       };
 
       selectedProducts.push(productInfo)
@@ -191,6 +206,7 @@ function funktionFleacheSollBearbeitetWerden(dateValue, userid) {
 
     if (neuBeantragenCheckbox.checked) {
       const productInfo = {
+        kundennummer: userid,
         productId: productIdRow,
         dateValue: dateValue,
         //flaechenname: flaechennameValue,
@@ -226,7 +242,7 @@ var map = L.map('map').setView([52.849226, 7.913939], 13); // Startpunkt-Koordin
 var flaechenID = 0;
 var coordinates = []; // Hier werden die Koordinaten für die aktuelle Fläche gesammelt
 
-if(coordinatesArrayBestellt.length > 0 || coordinatesArrayImWarenkorb.length > 0){ 
+if(coordinatesArrayBestellt.length > 0){ 
 
   var minLat = Number.POSITIVE_INFINITY;
   var maxLat = Number.NEGATIVE_INFINITY;
@@ -243,15 +259,7 @@ if(coordinatesArrayBestellt.length > 0 || coordinatesArrayImWarenkorb.length > 0
       maxLng = Math.max(maxLng, longitude);
   }
 
-  for (var i = 0; i < coordinatesArrayImWarenkorb.length; i++) {
-    var latitude = coordinatesArrayImWarenkorb[i].FKOORDINATENIDLAT;
-    var longitude = coordinatesArrayImWarenkorb[i].FKOORDINATENIDLNG;
 
-    minLat = Math.min(minLat, latitude);
-    maxLat = Math.max(maxLat, latitude);
-    minLng = Math.min(minLng, longitude);
-    maxLng = Math.max(maxLng, longitude);
-}
 
 
   var centerLat = (minLat + maxLat) / 2;
@@ -285,7 +293,7 @@ coordinatesArrayBestellt.forEach(function (fleachenStueck) {
           var polygon = L.polygon(coordinates, { 
             color: colorArt, 
             fillColor: colorArt, 
-            fillOpacity: 0.4 ,     
+            fillOpacity: 0.6 ,     
             info: flaechenID }).addTo(map);
 
         polygon.on('click', function () {
@@ -332,19 +340,6 @@ if (coordinates.length > 2) {
 flaechenID = 0;
 coordinates = []; // Hier werden die Koordinaten für die aktuelle Fläche gesammelt
 
-coordinatesArrayImWarenkorb.forEach(function (fleachenStueck) {
-  if (flaechenID === fleachenStueck.ARTIKELNR) {
-    coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
-  } else {
-    if (coordinates.length > 2) {
-      L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
-    }
-
-    // Zur nächsten Fläche wechseln und das Koordinaten-Array leeren
-    flaechenID = fleachenStueck.ARTIKELNR;
-    coordinates = [[fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]];
-  }
-});
 
 // Zum Schluss das letzte Polygon zeichnen (falls vorhanden)
 if (coordinates.length > 2) {
