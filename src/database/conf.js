@@ -8,13 +8,23 @@
 
 */
 
-
+/*
 const config = {
     host: 'localhost', // oder die IP-Adresse deiner MySQL-Datenbank
     user: 'root',
     password: 'Malte.116',
     database: 'vonhoven',
+};*/
+
+
+
+const config = {
+  host: 'mysql1', // oder die IP-Adresse deiner MySQL-Datenbank
+  user: 'vonhofen',
+  password: 'xxYzFLf5KcNjQMT~',
+  database: 'vonhofen',
 };
+
 
 module.exports = config
 

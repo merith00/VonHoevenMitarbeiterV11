@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  - var userCart = []; // Hier wird angenommen, dass userCart deine Einkaufswagen-Daten enthält
+  - var userCart = []; 
 
   if messages.success
     .notificationgreen
@@ -12,38 +12,47 @@ block content
           notification.parentNode.removeChild(notification);
         }, 3000);
 
-  .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor(style='height: 100vh;')
-    .row(style='width: 100%; height: 95%;')
-      .col-md-6.d-flex.flex-column(style='height: 100%;')
-        .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor
-
+  .container-fluid.secondary-backgroundcolor.flex-grow-1.text-center
+    .row(style="height:100%;")
+      .col
+        .row.py-4
           - if (UserCart.products.length > 0)
-
-            .container(style='width: 100%; height: 70vh; overflow-y: auto;' )
+            .row
+              .col-4.d-flex.align-items-center.justify-content-center
+                button.btn.btn-primary(type='button', id='kmlbutton', onClick='kmlerstellen("'+UserCart.products[0].KUNDENNUMMER+'")') KML
+              .col-4.d-flex.align-items-center.justify-content-center
+                button.btn.btn-primary(type='button', data-toggle='modal' data-target='#ModalProbeMussGezogenWerden' id='ModalProbeSollGezogenWerden', class='button') Bearbeiten 
+              .col-4.d-flex.align-items-center.justify-content-center
+                button.btn.btn-primary(type='button', data-toggle='modal' data-target='#ModalProbeWurdeGezogen' id='updatebutton', class='button') Gezogen
+        .row
+            .container(style='width: 100%; height: 80vh; overflow-y: auto;')
               .tab-content.text-center
                 .table-container.table-responsive
-                  table.table.table-bordered
+                  table#example.table.table-striped.table-responsive-sm
                     thead
-                      tr.primary-backgroundcolor
-                        th.secondary-color(scope="col") Flächenname
-                        th.secondary-color(scope="col") N<sub class='subscript'>min
-                        th.secondary-color(scope="col") S<sub class='subscript'>min
-                        th.secondary-color(scope="col") Humus
-                        th.secondary-color(scope="col") C/N
-                        th.secondary-color(scope="col") Stichtag
-                        th.secondary-color(scope="col") 
-                          p Auswählen
-                          input#auswaehlenCheckbox(type='checkbox')
-
+                      tr.accent-backgroundcolor.titelTR
+                        td.secondary-color(scope="col") Name
+                        td.secondary-color(scope="col") Fläche
+                        td.secondary-color(scope="col") 60cm
+                        td.secondary-color(scope="col") N<sub class='subscript'>min
+                        td.secondary-color(scope="col") S<sub class='subscript'>min
+                        td.secondary-color(scope="col") Humus
+                        td.secondary-color(scope="col") C/N
+                        td.secondary-color(scope="col") Stichtag
+                        td.secondary-color(scope="col", style="display: flex; justify-content: space-between; align-items: center;")
+                            span Auswählen
+                            input#auswaehlenCheckbox(type='checkbox' style='margin-right: 5px;')
                     tbody
                       each product in UserCart.products
                         tr.table-secondary
-                          td(name=product.ARTIKELNR)
-                            if(product.FLAECHENNAME == "null")
-                              p= product.ARTIKELNR
-                            else
-                              p= product.FLAECHENNAME
+                          - if (product.FLAECHENNAME === null || product.FLAECHENNAME === "")
+                              td(name=product.ARTIKELNR)= product.ARTIKELNR
+                          - else 
+                              td(name=product.ARTIKELNR)= product.FLAECHENNAME
+                          td.bestellung
                             img(style='width:auto; max-height:20px' name = 'imgFlaeche'+product.ARTIKELNR, src=product.FOTO, alt='Fleache')
+                          td.tdright
+                            input(type='checkbox', name='neunzigCM' + product.ARTIKELNR, checked = (product.TIEFENID==2), value='1', onchange='changeNeunzigCm("' + product.ARTIKELNR + '", "' + product.KUNDENNUMMER + '", this.checked)')
                           td.bestellung
                             input#CheckboxMangat(type='checkbox', style='background-color: red;' name='CheckboxMangat'+product.ARTIKELNR, value=(product.statusmangat), checked=(product.enthält_mangat === 'J') disabled ='true')
                           td.bestellung
@@ -53,26 +62,35 @@ block content
                           td.bestellung
                             input.normal#CheckboxCn(type='checkbox', name='CheckboxCn'+product.ARTIKELNR, value=(product[14]), checked=(product[14] === 1), disabled ='true')
                           - if (product.STARTDATUM && product.statusmangat === 3)
-                              td am
-                                p= product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit'})
+                                td am #{product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit'})}
                           - else 
-                              td ab
-                                p= product.ABDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit'})
+                              td ab #{product.ABDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit'})}
                           td.tdright
                             input#neuBeantragen(type='checkbox', name='neuBeantragen'+product.ARTIKELNR, value='1')
-                             
-            .row
-              .col-3 
-                button.btn.btn-primary(type='button', id='kmlbutton', onClick="kmlerstellen("+UserCart.products[0][0]+")", class='button ') KML erstellen
-              .col-3
-                button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalProbeMussGezogenWerden' id='ModalProbeSollGezogenWerden', class='button') Fläche auf Bearbeiten stellen
-              .col-3
-                button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalProbeWurdeGezogen' id='updatebutton', class='button') Proben gezogen
-
-      .col-md-6.d-flex.flex-column(style='height: 80vh;')
-        .container-fluid.vertical-center
-          button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalKundenDatenBearbeiten' id='KundenDatenBearbeiten', class='btn btn-primary button float-right bestellbuttont' style=' margin-bottom: 10px; margin-right: 15px') Kundendaten bearbeiten
+      .col
+        .row.py-4
+          .col-4 
+          .col-4.d-flex.align-items-center.justify-content-center
+            button.btn.btn-primary(type='button', data-toggle='modal', data-target='#ModalKundenDatenBearbeiten', id='KundenDatenBearbeiten') Kundendaten
+          .col-4.d-flex.align-items-center.justify-content-center
+            button.btn.btn-primary(type='button', data-toggle='modal', data-target='#ModalFleachenHinzufeugen', id='FleachenHinzufeugen', disabled) Flächen hinzufügen
+        .row
           div#map(style='width: 100%; height: 80vh;')
+
+
+  #ModalFleachenHinzufeugen.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
+    .modal-dialog.modal-dialog-centered(role='document')
+      .modal-content.neutral-backgroundcolor
+        .modal-header
+          h5#exampleModalLongTitle.modal-title.text-white Flächen hinzufügen
+          button.close(type='button' data-dismiss='modal' aria-label='Close')
+            span(aria-hidden='true') &times;
+        .modal-body
+          form(ref='uploadMehrereKunden', id='uploadMehrereKunden', action='/products/uploadMehrereKunden', method='post', enctype='multipart/form-data')
+            .input-group.mb-3
+              input.input-group-text(type='file', name='zipFiles', accept=".kml,.geojson,.shp,.zip" multiple)
+            .modal-footer
+              input.btn-primary.button.btn(type='submit', value='Hochladen!')
 
   #ModalProbeWurdeGezogen.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
     .modal-dialog.modal-dialog-centered(role='document')
@@ -81,18 +99,15 @@ block content
           h5#exampleModalLongTitle.modal-title.text-white Probe bearbeitet am:
           button.close(type='button' data-dismiss='modal' aria-label='Close')
             span(aria-hidden='true') &times;
-        // Modal-Body
         .modal-body 
           .input-group.date(data-provide="datepicker")
             input#datepicker(type="date" class="form-control")
             .input-group-addon
               span.glyphicon.glyphicon-th
-        // Modal-Body
         .modal-body
             button.btn.btn-primary(type='button', style='margin-top: 5px', id='probeSollgezogenWerdenButton', onClick="ProbeWurdeGezogen(document.getElementById('datepicker').value"+","+dieUserID+")", class='btn btn-primary button float-right bestellbutton') Proben gezogen
     div#loadingIndicator(style='display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); color: white; text-align: center; line-height: 100vh;')
       div.spinner-border(text='loading') 
-
 
   #ModalProbeMussGezogenWerden.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
     .modal-dialog.modal-dialog-centered(role='document')
@@ -101,128 +116,101 @@ block content
           h5#exampleModalLongTitle.modal-title.text-white Beproben am:
           button.close(type='button' data-dismiss='modal' aria-label='Close')
             span(aria-hidden='true') &times;
-        // Modal-Body
         .modal-body 
-          select#seasonSelector(type="select" class="form-control")
+          select#seasonSelector.form-select(type="select" class="form-control")
             option(value="1") Ab 01.01 Winterung
             option(value="2") Ab 15.02 Frühe Sommerung
             option(value="3") Ab 15.03 Späte Sommerung
-        // Modal-Body
         .modal-body
             button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="funktionFleacheSollBearbeitetWerden(document.getElementById('seasonSelector').value"+","+dieUserID+")", class='btn btn-primary button float-right bestellbutton') Proben ziehen
     div#loadingIndicatorProbeMussGezogenWerden(style='display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); color: white; text-align: center; line-height: 100vh;')
       div.spinner-border(text='loading') 
 
   #ModalKundenDatenBearbeiten.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
-    .modal-dialog.modal-dialog-centered(role='document')
-      .modal-content.neutral-backgroundcolor
-        // Modal-Header
-        .modal-header
-          h5#exampleModalLongTitle.modal-title.text-white= 'Kundendaten ändern von KdNR: ' + kundenDatenVomAusgewaehltenUser.KUNDENNUMMER
-          button.close(type='button' data-dismiss='modal' aria-label='Close')
-            span(aria-hidden='true') &times;
-        // Modal-Body
-        .modal-body
-          form#uploadFormRegister(ref='uploadFormRegister' action='/products/setUpdateDatenVomKunden' method='put' enctype='multipart/form-data')
-            input(type='hidden' name='kundennummer' value=kundenDatenVomAusgewaehltenUser.KUNDENNUMMER)
-            .row
-              .col-md-6
-                .form-group
-                  - if (kundenDatenVomAusgewaehltenUser.VORNAME)
-                    input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.VORNAME  name='vorname')
-                  - else 
-                    input.form-control(type='text' placeholder='Vorname'  name='vorname')
-              .col-md-6
-                .form-group
-                  - if (kundenDatenVomAusgewaehltenUser.NACHNAME)
-                    input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.NACHNAME  name='nachname')
-                  - else
-                    input.form-control(type='text' placeholder='Nachname' name='nachname')
-            .row
-              .col-md-6
-                .form-group
-                    - if (kundenDatenVomAusgewaehltenUser.E_MAIL)
-                      input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.E_MAIL name='email')
-                    - else
-                      input.form-control(type='email' name='email' placeholder='E-Mail')
-              .col-md-6
-                .form-group
-                    - if (kundenDatenVomAusgewaehltenUser.TELEFONUMMER)
-                      input.form-control(type='tel' value=kundenDatenVomAusgewaehltenUser.TELEFONUMMER  name='telefonnummer')
-                    - else
-                      input.form-control(type='tel' name='telefonnummer' placeholder='Telefonnummer')
-            .row
-              .col-md-6
-                .form-group
-                    - if (kundenDatenVomAusgewaehltenUser.ORT)
-                      input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.ORT  name='ort')
-                    - else
-                      input.form-control(type='text' name='ort' placeholder='Ort') 
-              .col-md-6
-                .form-group
-                    - if (kundenDatenVomAusgewaehltenUser.POSTLEITZAHL)
-                      input.form-control(type='number' value=kundenDatenVomAusgewaehltenUser.POSTLEITZAHL  name='plz')
-                    - else
-                      input.form-control(type='number' name='plz' placeholder='Postleitzahl')
-            .row
-              .col-md-6
-                .form-group
-                    - if (kundenDatenVomAusgewaehltenUser.STRASSE)
-                      input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.STRASSE  name='strasse')
-                    - else
-                      input.form-control(type='text' name='strasse' placeholder='Straße') 
-              .col-md-6
-                .form-group
-                    - if (kundenDatenVomAusgewaehltenUser.HAUSNUMMER)
-                      input.form-control(type='number' value=kundenDatenVomAusgewaehltenUser.HAUSNUMMER name='hausnummer')
-                    - else
-                      input.form-control(type='number' name='hausnummer' placeholder='Hausnummer') 
-            .row
-              .col-md-6
-                .form-group
-                    - if (kundenDatenVomAusgewaehltenUser.Geburtsdatum)
-                      - var date = new Date(kundenDatenVomAusgewaehltenUser.Geburtsdatum);
-                      - var formattedDate = date.toISOString().split('T')[0];
+      .modal-dialog.modal-dialog-centered(role='document')
+          .modal-content.neutral-backgroundcolor
+              .modal-header
+                  h5#exampleModalLongTitle.modal-title.text-white= 'Kundendaten ändern von KdNR: ' + kundenDatenVomAusgewaehltenUser.KUNDENNUMMER
+                  button.close(type='button' data-dismiss='modal' aria-label='Close')
+                      span(aria-hidden='true') &times;
+              .modal-body
+                  form#uploadFormRegister(ref='uploadFormRegister' action='/products/setUpdateDatenVomKunden' method='put' enctype='multipart/form-data')
+                      input(type='hidden' name='kundennummer' value=kundenDatenVomAusgewaehltenUser.KUNDENNUMMER)
+                      .row
+                          .col-md-6
+                              .form-group.kundenInfo
+                                  label(for='vorname') Vorname
+                                  - if (kundenDatenVomAusgewaehltenUser.VORNAME)
+                                      input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.VORNAME  name='vorname')
+                                  - else 
+                                      input.form-control(type='text' placeholder='Vorname'  name='vorname')
+                          .col-md-6
+                              .form-group.kundenInfo
+                                  label(for='nachname') Nachname
+                                  - if (kundenDatenVomAusgewaehltenUser.NACHNAME)
+                                      input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.NACHNAME  name='nachname')
+                                  - else
+                                      input.form-control(type='text' placeholder='Nachname' name='nachname')
+                      .row
+                          .col-md-6
+                              .form-group.kundenInfo
+                                  label(for='email') E-Mail
+                                  - if (kundenDatenVomAusgewaehltenUser.E_MAIL)
+                                      input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.E_MAIL name='email')
+                                  - else
+                                      input.form-control(type='email' name='email' placeholder='E-Mail')
+                          .col-md-6
+                              .form-group.kundenInfo
+                                  label(for='telefonnummer') Telefonnummer
+                                  - if (kundenDatenVomAusgewaehltenUser.TELEFONNUMMER)
+                                      input.form-control(type='tel' value=kundenDatenVomAusgewaehltenUser.TELEFONNUMMER  name='telefonnummer')
+                                  - else
+                                      input.form-control(type='tel' name='telefonnummer' placeholder='Telefonnummer')
+                      .row
+                          .col-md-6
+                              .form-group.kundenInfo
+                                  label(for='ort') Ort
+                                  - if (kundenDatenVomAusgewaehltenUser.ORT)
+                                      input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.ORT  name='ort')
+                                  - else
+                                      input.form-control(type='text' name='ort' placeholder='Ort') 
+                          .col-md-6
+                              .form-group.kundenInfo
+                                  label(for='plz') Postleitzahl
+                                  - if (kundenDatenVomAusgewaehltenUser.POSTLEITZAHL)
+                                      input.form-control(type='number' value=kundenDatenVomAusgewaehltenUser.POSTLEITZAHL  name='plz')
+                                  - else
+                                      input.form-control(type='number' name='plz' placeholder='Postleitzahl')
+                      .row
+                          .col-md-6
+                              .form-group.kundenInfo
+                                  label(for='strasse') Straße
+                                  - if (kundenDatenVomAusgewaehltenUser.STRASSE)
+                                      input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.STRASSE  name='strasse')
+                                  - else
+                                      input.form-control(type='text' name='strasse' placeholder='Straße') 
+                          .col-md-6
+                              .form-group.kundenInfo
+                                  label(for='hausnummer') Hausnummer
+                                  - if (kundenDatenVomAusgewaehltenUser.HAUSNUMMER)
+                                      input.form-control(type='number' value=kundenDatenVomAusgewaehltenUser.HAUSNUMMER name='hausnummer')
+                                  - else
+                                      input.form-control(type='number' name='hausnummer' placeholder='Hausnummer') 
+                      .modal-footer
+                        input.btn-primary.button.btn(type='submit', value='Speichern')
 
-
-                      .input-group.date(data-provide="datepicker")
-                        input#datepicker(type="date" class="form-control" value=formattedDate name='date' placeholder='Geburtsdatum')
-                        .input-group-addon
-                          span.glyphicon.glyphicon-th
-                    - else
-                      .input-group.date(data-provide="datepicker")
-                        input#datepicker(type="date" class="form-control" name='date' placeholder='Geburtsdatum')
-                        .input-group-addon
-                          span.glyphicon.glyphicon-th
-              .col-md-6
-                .form-group
-                    - if (kundenDatenVomAusgewaehltenUser.PASSWORD)
-                      input.form-control(type='password' value=kundenDatenVomAusgewaehltenUser.PASSWORD name='password' disabled)
-                    - else
-                      input.form-control(type='password' placeholder='Passwort' name='password' ) 
-  
-       
-            // Hier können Sie den Inhalt des Modals hinzufügen
-            // Modal-Footer
-            .modal-footer
-              input.btn-primary.button.btn(type='submit', value=' Fertig')
-  
   script.
     var coordinatesArrayBestellt = !{JSON.stringify(FleachenBestellt)};
-    //var coordinatesArrayImWarenkorb = !{JSON.stringify(Fleachen)};
     var kundenDatenVomAusgewaehltenUser = !{JSON.stringify(kundenDatenVomAusgewaehltenUser)};
-
+    var UserCart = !{JSON.stringify(UserCart)};
     var date = new Date(kundenDatenVomAusgewaehltenUser.GEBURTSDATUM);
     var formattedDate = date.toISOString().split('T')[0];
 
-    const today = new Date();
 
-    // Formatieren Sie das Datum im yyyy-mm-dd-Format
+    const today = new Date();
     const todayFormatted = today.toISOString().split('T')[0];
 
-    // Setzen Sie das Datum als Standardwert für das Eingabedatum
     document.getElementById('datepicker').value = todayFormatted;
-
     document.addEventListener('DOMContentLoaded', function () {
       var auswaehlenCheckbox = document.querySelector('input#auswaehlenCheckbox');
       var neuBeantragenCheckboxes = document.querySelectorAll('input#neuBeantragen');
@@ -235,5 +223,8 @@ block content
         });
       });
     });
+
+
+
 
   script(src="/javascript/productshhhh.js")

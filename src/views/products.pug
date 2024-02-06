@@ -3,6 +3,8 @@ extends layout
 block content
 
 
+
+
   if Notification
       .notification-overlay
           .notificationred
@@ -12,366 +14,6 @@ block content
               var notificationOverlay = document.querySelector(".notification-overlay");
               notificationOverlay.parentNode.removeChild(notificationOverlay);
           }, 3000);
-
-  .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor
-    .container(id='tabContent' style='width: 100%; height: 85%')
-      .row(id='tabContent' style='width: 100%;')
-        .col-2
-            input(type='checkbox', id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
-            label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
-      ul.nav.nav-tabs.secondary-backgroundcolor.h5
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#lufa' data-tab-id='lufa') Lufa
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#claas' data-tab-id='claas') Claas
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#gsagri' data-tab-id='gsagri') GSAgri
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#lwk' data-tab-id='lwk') LWK-Niedersachsen
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#maehlmann' data-tab-id='maehlmann') Mählmann
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#sonstiges' data-tab-id='sonstiges') Sonstiges
-      .tab-content.text-center
-        #lufa.tab-pane.fade.show.active
-          #lufa-table.table-container.table-responsive(style="max-height: 60vh; overflow-y: auto;")
-            table#example.table.table-striped.autoTable
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in Daten.lufa
-                  tr.table-secondary
-                    td
-                      a.nav-linkTableA(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #claas.tab-pane.fade
-          #claas-table.table-container.secondary-backgroundcolor
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in Daten.claas
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #gsagri.tab-pane.fade
-          #gsagri-table.table-container
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in Daten.gsagri
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #lwk.tab-pane.fade
-          #lwk-table.table-container
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in Daten.lwkniedersachsen
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #maehlmann.tab-pane.fade
-          #maehlmann-table.table-container
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in Daten.maehlmann
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #sonstiges.tab-pane.fade
-          #sonstiges-table.table-container
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in Daten.sonstiges
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-
-      button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenterEinKunde'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Kunde hinzufügen  
-      button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenter'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Mehrere Kunden hinzufügen  
-  
-
-    .container(id='tabContentZuZiehen' style='width: 100%; height: 85%')
-      .row(id='tabContent' style='width: 100%;')
-        .col-2
-          input(type='checkbox', id='nurZuZiehendeKundenAnzeigen', name='nurZuZiehendeKundenAnzeigen')
-          label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
-      ul.nav.nav-tabs.secondary-backgroundcolor.h5
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#lufaZuZiehen' data-tab-id='lufa') Lufa
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#claasZuZiehen' data-tab-id='claas') Claas
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#gsagriZuZiehen' data-tab-id='gsagri') GSAgri
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#lwkZuZiehen' data-tab-id='lwk') LWK-Niedersachsen
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#maehlmannZuZiehen' data-tab-id='maehlmann') Mählmann
-        li.nav-item
-          a.nav-link.nav-linkTable(data-toggle='tab' href='#sonstiges' data-tab-id='sonstiges') Sonstiges
-      .tab-content.text-center
-        #lufaZuZiehen.tab-pane.fade.show.active
-          #lufa-table.table-container.table-responsive(style="max-height: 60vh; overflow-y: auto;")
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in DatenZuZiehen.lufa
-                  tr.table-secondary
-                    td
-                      a.nav-linkTableA(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #claasZuZiehen.tab-pane.fade
-          #claas-table.table-container.secondary-backgroundcolor
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in DatenZuZiehen.claas
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #gsagriZuZiehen.tab-pane.fade
-          #gsagri-table.table-container
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in DatenZuZiehen.gsagri
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #lwkZuZiehen.tab-pane.fade
-          #lwk-table.table-container
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in DatenZuZiehen.lwkniedersachsen
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #maehlmannZuZiehen.tab-pane.fade
-          #maehlmann-table.table-container
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in DatenZuZiehen.maehlmann
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-        #sonstigesZuZiehen.tab-pane.fade
-          #sonstiges-table.table-container
-            table.table.table-bordered
-              thead
-                tr.primary-backgroundcolor
-                  th.secondary-color(scope="col") ID
-                  th.secondary-color(scope="col") Vorname
-                  th.secondary-color(scope="col") Nachname
-                  th.secondary-color(scope="col") Telefonnummer
-                  th.secondary-color(scope="col") E-Mail
-                  th.secondary-color(scope="col") Wohnort
-                  th.secondary-color(scope="col") Anzahl Flächen
-                  th.secondary-color(scope="col") Löschen
-              tbody
-                each dat in DatenZuZiehen.sonstiges
-                  tr.table-secondary
-                    td
-                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
-                    td= dat.VORNAME
-                    td= dat.NACHNAME
-                    td= dat.TELEFONNUMMER
-                    td= dat.E_MAIL
-                    td= dat.ORT
-                    td= dat.AnzahlFlaechen
-                    td.bestellung
-                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
-    
-      button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenterEinKunde'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Kunde hinzufügen  
-      button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenter'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Mehrere Kunden hinzufügen  
   
   #exampleModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
     .modal-dialog.modal-dialog-centered(role='document')
@@ -385,14 +27,22 @@ block content
         .modal-body
           // Formular innerhalb des Popups
           form(ref='uploadMehrereKunden', id='uploadMehrereKunden', action='/products/uploadMehrereKunden', method='post', enctype='multipart/form-data')
-            .form-group
-              select#selectedOption.form-control(name='selectedOption')
-                option(value='1') Lufa
-                option(value='2') CLAAS
-                option(value='3') GSAgri 
-                option(value='4') LWK-Niedersachsen
-                option(value='5') M&auml;hlmann
-                option(value='6') Sonstiges
+            .row
+              .col-md-6
+                .form-group
+                  select#selectedOption.form-control.form-select(name='selectedOption' onchange='checkSelectedOption(this)')
+                    option(value='1') Lufa
+                    option(value='2') CLAAS
+                    option(value='3') GSAgri 
+                    option(value='4') LWK-Niedersachsen
+                    option(value='5') Mählmann
+                    option(value='6') Sonstiges
+              .col-md-6
+                .form-group
+                  select#selectedOptionWinterung.form-control.form-select(name='selectedOptionWinterung')
+                    option(value='1') Ab 01.01 Winterung
+                    option(value='2') Ab 15.02 Frühe Sommerung
+                    option(value='3') Ab 15.03 Späte Sommerung 
             .input-group.mb-3
               input.input-group-text(type='file', name='zipFiles', accept=".kml,.geojson,.shp,.zip" multiple)
             // Hier können Sie den Inhalt des Modals hinzufügen
@@ -412,7 +62,7 @@ block content
             .row
               .col-md-6
                 .form-group
-                  select#selectedOption.form-control(name='selectedOption' onchange='checkSelectedOption(this)')
+                  select#selectedOption.form-control.form-select(name='selectedOption' onchange='checkSelectedOption(this)')
                     option(value='1') Lufa
                     option(value='2') CLAAS
                     option(value='3') GSAgri 
@@ -421,7 +71,7 @@ block content
                     option(value='6') Sonstiges
               .col-md-6
                 .form-group
-                  select#selectedOptionWinterung.form-control(name='selectedOptionWinterung')
+                  select#selectedOptionWinterung.form-control.form-select(name='selectedOptionWinterung')
                     option(value='1') Ab 01.01 Winterung
                     option(value='2') Ab 15.02 Frühe Sommerung
                     option(value='3') Ab 15.03 Späte Sommerung 
@@ -459,28 +109,313 @@ block content
                   input.form-control(type='number' id='kundenid' name='kundenid' placeholder='KundenID' disabled)
               .col-md-6
                 .form-group
-                  input.form-control(type='password' placeholder='Passwort' name='password' ) 
+                  input.form-control(type='password', placeholder='Passwort', name='password', required)
             .input-group.mb-3
               input.input-group-text(type='file', name='sampleFile', accept=".kml,.geojson,.shp,.zip")               
             .modal-footer
               input.btn-primary.button.btn(type='submit', value='Hochladen!')
 
-
-  #kundenwirklichloeschen.modal.fade(tabindex='-1' role='dialog' aria-labelledby='kundenwirklichloeschen' aria-hidden='true')
+  .modal.fade(id="kundenwirklichloeschen" tabindex="-1" aria-labelledby="meinModalLabel" aria-hidden="true")
     .modal-dialog.modal-dialog-centered(role='document')
       .modal-content.neutral-backgroundcolor
         .modal-header
           h5#exampleModalLongTitle.modal-title.text-white Kunden wirklich löschen?
-          button.close(type='button' data-dismiss='modal' aria-label='Close' onclick='resetCheckbox()')
+          button.close(type='button' data-dismiss='modal' aria-label='Close')
             span(aria-hidden='true') &times;
         .modal-footer
           button.btn.button.btn(type='button' data-dismiss='modal' onclick='resetCheckbox()') Abbrechen
           button.btn.btn-danger.button.btn(type='button' id='btnDeleteCustomer' onclick='deleteCustomer()') Löschen
 
-  
-  script.
-  
+  - var daten = Daten.lufa.alle
 
+  .container-fluid.flex-grow-1.justify-content-center.secondary-backgroundcolor
+    .row
+      .col-1
+      .col-10
+        .row.py-4
+          .col-6(style='display: flex; align-items: center;')
+            button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenterEinKunde' style='margin-right:20px;') Kunde hinzufügen  
+            button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenter' style='margin-right:20px;') Mehrere Kunden hinzufügen  
+          .col-4(style='display: flex; align-items: center;')
+            table.table-striped.table-responsive-sm
+              thead
+                tr.accent-backgroundcolor.titelTRAbdatum
+                  td.secondary-color.tab-item.Abdatum.active(scope="col", onClick="changeActiveTab('alle','abdatum')", name="alle") Alle 
+                  td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('winterung','abdatum')", name="winterung") Winterung
+                  td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('fSommerung','abdatum')", name="fSommerung") frühe Sommerung
+                  td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('sSommerung','abdatum')", name="sSommerung") späte Sommerung
+          .col-2(style='display: flex; align-items: center;')
+            input(type='checkbox', id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
+            label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
+        .row.py-4
+          .col#tableContainer
+            table#example.table.table-striped.table-responsive-sm
+              thead
+                tr.accent-backgroundcolor.titelTR
+                  td.secondary-color.tab-item.active(scope="col", onClick="changeActiveTab('lufa','geodatengeber')", name="lufa") Lufa
+                  td.secondary-color.tab-item(scope="col", onClick="changeActiveTab('claas','geodatengeber')", name="claas") Claas
+                  td.secondary-color.tab-item(scope="col", onClick="changeActiveTab('gsagri','geodatengeber')", name="gsagri") GSAgri
+                  td.secondary-color.tab-item(scope="col", onClick="changeActiveTab('lwk','geodatengeber')", name="lwk") LWK-Niedersachsen
+                  td.secondary-color.tab-item(scope="col", onClick="changeActiveTab('maehlmann','geodatengeber')", name="maehlmann") Mählmann
+                  td.secondary-color.tab-item(scope="col", onClick="changeActiveTab('sonstiges','geodatengeber')", name="sonstiges") Sonstiges
+                tr.primary-backgroundcolor
+                  th.accent-color(scope="col") ID
+                  th.accent-color(scope="col") Vorname
+                  th.accent-color(scope="col") Nachname
+                  th.accent-color(scope="col") Telefonnummer
+                  th.accent-color(scope="col") E-Mail
+                  th.accent-color(scope="col") Wohnort
+                  th.accent-color(scope="col") Anzahl Flächen
+                  th.accent-color(scope="col" style="background-color: withe; display: flex; justify-content: space-between; ") 
+                    span Löschen
+                    input#auswaehlenCheckbox(type='checkbox' style='margin-right: 5px;')
+              tbody#tableBody
+                each dat in daten
+                  tr.table-secondary
+                    td.col-1
+                      a.link-dark.link-offset-2.link-underline.link-underline-opacity-0.text-dark.text-success(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', id="deleteCheckbox", name=dat.KUNDENNUMMER)
+            .row.py-4
+              .col-10 
+              .col-2.d-flex.justify-content-end
+                button.btn.btn-primary(id='loeschenButton'  type='button' data-toggle='modal' data-target='#kundenwirklichloeschen' style='display:none ; margin-right:20px; margin-top:10px') Löschen  
+
+
+  script.
+      var activeTapGeodatengeber = 'lufa'
+      var activeTapAbdatum = 'alle'
+
+      $(document).ready(function () {
+        $('#example').DataTable();
+      });
+
+
+      eventlisterget();
+
+
+      function eventlisterget() {
+          var auswaehlenCheckbox = document.querySelector('input#auswaehlenCheckbox');
+          var neuBeantragenCheckboxes = document.querySelectorAll('input#deleteCheckbox');
+          var loeschenButton = document.getElementById('loeschenButton');
+
+          auswaehlenCheckbox.addEventListener('change', function () {
+              var isChecked = auswaehlenCheckbox.checked;
+
+              neuBeantragenCheckboxes.forEach(function (checkbox) {
+                  checkbox.checked = isChecked;
+              });
+
+              if (isChecked) {
+                  loeschenButton.style.display = 'block';
+              } else {
+                  loeschenButton.style.display = 'none';
+              }
+          });
+      }
+
+
+      // Diese Funktion prüft, ob mindestens eine Checkbox ausgewählt ist
+      function checkIfAnyCheckboxChecked() {
+          var checkboxes = document.querySelectorAll('[id="deleteCheckbox"]');
+          var isChecked = false;
+          checkboxes.forEach(function (checkbox) {
+              if (checkbox.checked) {
+                  isChecked = true;
+              }
+          });
+          return isChecked;
+      }
+
+      // Hier fügen Sie die Eventlistener für die Checkboxen hinzu, um den Button entsprechend zu steuern
+      document.querySelectorAll('[id="deleteCheckbox"]').forEach(function (checkbox) {
+          checkbox.addEventListener('change', function () {
+              var loeschenButton = document.getElementById('loeschenButton');
+              if (checkIfAnyCheckboxChecked()) {
+                  loeschenButton.style.display = 'block';
+              } else {
+                  loeschenButton.style.display = 'none';
+              }
+          });
+      });
+
+
+    // Diese Funktion initialisiert die Eventlistener
+    function initializeEventListeners() {
+        // Auswahlfeld im Kopf der Tabelle
+        var auswaehlenCheckbox = document.querySelector('input#auswaehlenCheckbox');
+        auswaehlenCheckbox.addEventListener('change', toggleDeleteButton);
+
+        // Alle einzelnen Checkboxen in den Zeilen
+        document.querySelectorAll('[id="deleteCheckbox"]').forEach(function (checkbox) {
+            checkbox.addEventListener('change', toggleDeleteButton);
+        });
+    }
+
+    // Diese Funktion zeigt den "Löschen"-Button an oder versteckt ihn basierend auf dem Zustand der Checkboxen
+    function toggleDeleteButton() {
+        var loeschenButton = document.getElementById('loeschenButton');
+        if (checkIfAnyCheckboxChecked()) {
+            loeschenButton.style.display = 'block';
+        } else {
+            loeschenButton.style.display = 'none';
+        }
+    }
+
+    // Diese Funktion prüft, ob mindestens eine Checkbox ausgewählt ist
+    function checkIfAnyCheckboxChecked() {
+        var checkboxes = document.querySelectorAll('[id="deleteCheckbox"]');
+        var isChecked = false;
+        checkboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
+                isChecked = true;
+            }
+        });
+        return isChecked;
+    }
+
+    // Initialisieren der Eventlistener
+    initializeEventListeners();
+
+
+      var Daten = !{JSON.stringify(Daten)};
+      var DatenZuZiehen = !{JSON.stringify(DatenZuZiehen)};
+
+      function changeActiveTab(tabName,category) {
+         if(category === 'abdatum'){
+          activeTapAbdatum = tabName;
+        } else if (category ==='geodatengeber') {
+          activeTapGeodatengeber = tabName;
+        }
+        var allTds = document.querySelectorAll('td');
+        allTds.forEach(function(td) {
+            td.classList.remove('active');
+        });
+
+        changeTable();
+        var reiter = document.querySelector(`td[name="${activeTapAbdatum}"]`);
+        reiter.classList.add('active');
+        reiter = document.querySelector(`td[name="${activeTapGeodatengeber}"]`);
+        reiter.classList.add('active');
+
+      }
+
+
+      function getAbDatum(geodatengeber){
+        console.log(activeTapAbdatum)
+        if(activeTapAbdatum === 'alle'){
+          return geodatengeber.alle;
+        } else if(activeTapAbdatum === 'winterung'){
+          return geodatengeber.winterung;
+        } else if(activeTapAbdatum === 'fSommerung'){
+          return geodatengeber.fSommerung;
+        } else if(activeTapAbdatum === 'sSommerung'){
+          return geodatengeber.sSommerung;
+        }
+      }
+
+      function changeTable() {
+        var nurzuZiehen = document.getElementById('nurZuZiehendeKunden');
+
+        if(nurzuZiehen.checked === false){
+          var newDaten  = Daten;
+        } else {
+          var newDaten  = DatenZuZiehen;
+        }
+
+        if (activeTapGeodatengeber === 'lufa')  {
+          newDaten = getAbDatum(newDaten.lufa);
+        } else if (activeTapGeodatengeber === 'claas')  {
+          newDaten = getAbDatum(newDaten.claas);
+        } if (activeTapGeodatengeber === 'gsagri')  {
+          newDaten = getAbDatum(newDaten.gsagri);
+        } else if (activeTapGeodatengeber === 'lwk')  {
+          newDaten = getAbDatum(newDaten.lwkniedersachsen);
+        } else if (activeTapGeodatengeber === 'maehlmann')  {
+          newDaten = getAbDatum(newDaten.maehlmann);
+        } else if (activeTapGeodatengeber === 'sonstiges')  {
+          newDaten = getAbDatum(newDaten.sonstiges);
+        } 
+
+
+        var containerHTML = `
+          <div class="col">
+            <table id="example" class="table table-striped">
+              <thead>
+                <tr class="accent-backgroundcolor titelTR">
+                  <td class="secondary-color tab-item" name="lufa" onClick="changeActiveTab('lufa','geodatengeber')">Lufa</td>
+                  <td class="secondary-color tab-item" name="claas" onClick="changeActiveTab('claas','geodatengeber')">Claas</td>
+                  <td class="secondary-color tab-item" name="gsagri" onClick="changeActiveTab('gsagri','geodatengeber')">GSAgri</td>
+                  <td class="secondary-color tab-item" name="lwk" onClick="changeActiveTab('lwk','geodatengeber')">LWK-Niedersachsen</td>
+                  <td class="secondary-color tab-item" name="maehlmann" onClick="changeActiveTab('maehlmann','geodatengeber')">Mählmann</td>
+                  <td class="secondary-color tab-item" name="sonstiges" onClick="changeActiveTab('sonstiges','geodatengeber')">Sonstiges</td>
+                </tr>
+                <tr class="primary-backgroundcolor">
+                  <th class="accent-color">ID</th>
+                  <th class="accent-color">Vorname</th>
+                  <th class="accent-color">Nachname</th>
+                  <th class="accent-color">Telefonnummer</th>
+                  <th class="accent-color">E-Mail</th>
+                  <th class="accent-color">Wohnort</th>
+                  <th class="accent-color">Anzahl Flächen</th>
+                  <th class="accent-color" scope="col" style="background-color: white; display: flex; justify-content: space-between;">
+                    <span>Löschen</span>
+                    <input id="auswaehlenCheckbox" type="checkbox" style="margin-right: 5px;">
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+        `;
+
+
+
+        if(Array.isArray(newDaten)){
+
+          newDaten.forEach(function (dat) {
+            // Neue Daten hinzufügen
+            containerHTML += `
+              <tr class="table-secondary">
+                <td>
+                  <a class="link-dark link-offset-2 link-underline link-underline-opacity-0 text-dark text-success" href="/products/${dat.KUNDENNUMMER}">${dat.KUNDENNUMMER}</a>
+                </td>
+                <td>${dat.VORNAME}</td>
+                <td>${dat.NACHNAME}</td>
+                <td>${dat.TELEFONNUMMER}</td>
+                <td>${dat.E_MAIL}</td>
+                <td>${dat.ORT}</td>
+                <td>${dat.AnzahlFlaechen}</td>
+                <td class="bestellung"><input class="normal" id="deleteCheckbox" type="checkbox" name="${dat.KUNDENNUMMER}"></td>
+              </tr>
+            `;
+          });
+        }
+
+        containerHTML += `
+                </tbody>
+              </table>
+              <div class="row py-4">
+                <div class="col-10"></div>
+                <div class="col-2 d-flex justify-content-end">
+                  <button id="loeschenButton" class="btn btn-primary" type="button" data-toggle="modal" data-target="#kundenwirklichloeschen" style="display:none; margin-right:20px; margin-top:10px">Löschen</button>
+                </div>
+              </div>
+
+            </div>
+        `;
+
+        $('#tableContainer').html(containerHTML);
+        $('#example').DataTable({});
+
+        eventlisterget();
+        initializeEventListeners();
+      }
+      
       function checkSelectedOption(selectElement) {
         var kundenIdInput = document.getElementById('kundenid');
         if (selectElement.value === '1') {
@@ -493,56 +428,22 @@ block content
         }
       }
 
-
-  
-
     document.getElementById('nurZuZiehendeKunden').addEventListener('change', function() {
-      var checked = this.checked;
-      document.getElementById('tabContent').style.display = checked ? 'none' : 'block';
-      document.getElementById('tabContentZuZiehen').style.display = checked ? 'block' : 'none';
-      document.getElementById('nurZuZiehendeKunden').checked=false;
-      document.getElementById('nurZuZiehendeKundenAnzeigen').checked=true;
+      changeActiveTab(activeTapGeodatengeber)
     });
-    
-    document.getElementById('nurZuZiehendeKundenAnzeigen').addEventListener('change', function() {
-      var checked = this.checked;
-      document.getElementById('tabContent').style.display = checked ? 'none' : 'block';
-      document.getElementById('tabContentZuZiehen').style.display = checked ? 'block' : 'none';
-      document.getElementById('nurZuZiehendeKundenAnzeigen').checked=false;
-    });
-
-    // Stellen Sie sicher, dass das div ausgeblendet ist, wenn die Seite geladen wird
-    document.getElementById('tabContentZuZiehen').style.display = 'none';
 
     var checkboxZumLoeschen ='';
-    
-    document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
-      checkbox.addEventListener('change', function() {
-        if (this.checked) {
-          console.log('das heir ' + this.name)
-          checkboxZumLoeschen = this.name
-          $('#kundenwirklichloeschen').modal('show');
-        }
-      });
-    });
-
-
-    function resetCheckbox() {
-      console.log('hier ist die ' + checkboxZumLoeschen)
-      var checkboxes = document.getElementsByName(checkboxZumLoeschen);
-
-      if (checkboxes.length > 0) {
-        checkboxes[0].checked = false;
-      } else {
-        console.error('Checkbox nicht gefunden.');
-      }
-
-      checkboxZumLoeschen ='';
-    }
-
 
     function deleteCustomer() {
-      console.log('Checkbox zum Löschen:', checkboxZumLoeschen);
+      var customerToDelete = document.querySelectorAll('input[id="deleteCheckbox"]');
+      var customerNames = [];
+
+      customerToDelete.forEach(function(input) {
+          if (input.checked) {
+              customerNames.push(input.name);
+          }
+      });
+
 
       fetch('/products/deleteCustomer', {
         method: 'PUT',
@@ -550,13 +451,12 @@ block content
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ kundeloeschen: checkboxZumLoeschen })
+        body: JSON.stringify({ kundeloeschen: customerNames })
       })
       .then(response => response.status)
       .then(status => handleResponse(status))
       .catch(error => console.error('Error:', error));
     }
-
 
     function handleResponse(status) {
       if (status === 200) {

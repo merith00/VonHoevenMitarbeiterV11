@@ -3,9 +3,6 @@ const passport = require('passport');
 var router = express.Router();
 const getfleachenFromAllUser = require('../database/oracle').getfleachenFromAllUser
 
-
-
-
 router.get('/fleachen', async (req,res)=>{
     if(req.isAuthenticated()){
         const userID = req.user.id
@@ -16,16 +13,11 @@ router.get('/fleachen', async (req,res)=>{
     }
 })
 
-
-
-
-
-
 router.get('/', async function(req, res) {
     if(req.isAuthenticated()){
         const userID = req.user.id
         var fleachenFromUser = await getfleachenFromAllUser()
-        if(fleachenFromUser.length > 0){
+         if(fleachenFromUser.winterung.length > 0){
             return res.render('cart', { title: 'Express', dieUserID: userID, Fleachen: fleachenFromUser, login: true })
         } else {
             return res.render('cart', { title: 'Express', dieUserID: userID, Fleachen: -1, login: true })
@@ -36,7 +28,7 @@ router.get('/', async function(req, res) {
 
 
 
-
+/* 01022024
 router.post('/login',passport.authenticate('local',{
     failureRedirect: '/',
     failureFlash: true,
@@ -53,9 +45,6 @@ router.delete('/logout', function(req, res, next) {
   });
 });
 
-
-
-
-
+*/
 
 module.exports = router;

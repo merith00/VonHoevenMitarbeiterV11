@@ -1,0 +1,4 @@
+//#TODO
+//wennnureinfeldistmussdasalsvariebelmitgegebenwerdendaessonst problene mit dem is a array gibt  getInformationsForGenerateKmlFile
+#ausstellendasdasfehltvorgefülltwirdmitemail
+

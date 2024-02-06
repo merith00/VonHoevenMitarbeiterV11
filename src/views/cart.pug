@@ -8,7 +8,7 @@ block content
                     table.table.table-bordered
                         thead
                             tr.primary-backgroundcolor
-                                th.secondary-color() Stichtag
+                                th.secondary-color.primary-backgroundcolor Stichtag
                         tbody
                             tr.table-light
                                 td 
@@ -29,8 +29,8 @@ block content
                 .row.ml-2 
                     table.table.table-bordered
                         thead
-                            tr.primary-backgroundcolor
-                                th.secondary-color(colspan="2", scope="col") Filter
+                            tr
+                                th.secondary-color.primary-backgroundcolor(colspan="2", scope="col") Filter
                         tbody
                             tr.table-light
                                 td  <sup>N</sup><sub>min</sub>
@@ -52,7 +52,6 @@ block content
                 .container-fluid.vertical-center
                     div#map(style='width: 100%; height: 95%;')
 
-
     #exampleModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
         .modal-dialog.modal-dialog-centered(role='document')
             .modal-content.neutral-backgroundcolor
@@ -60,67 +59,43 @@ block content
                     h5#exampleModalLongTitle.modal-title.text-white Flächeninformationen
                     button.close(type='button' data-dismiss='modal' aria-label='Close')
                         span(aria-hidden='true') &times;
-                // Modal-Body
                 .modal-body
-                    table.table.table-borderless.table-fleachenInformationene
-                        tbody
-                            tr.font-weight-bold
-                                td
-                                    | Kundennummer: 
-                                td
-                                    a.nav-linkTableA#kundenNr(style='color:#58634C; cursor: pointer;', onClick="kundenAnsehen(document.getElementById('kundenNr').textContent)")
-                            tr.font-weight-bold
-                                td
-                                    | Probennummer: 
-                                td
-                                    span#probenNr
-                            tr.font-weight-bold
-                                td
-                                    | Beproben ab: 
-                                td
-                                    span#beprobenAb
-                            tr.font-weight-bold
-                                td
-                                    | Nutzung: 
-                                td
-                                    span#nutzung
-                            tr.font-weight-bold
-                                td
-                                    | Schlag Bezeichnung: 
-                                td
-                                    span#schlagBz
-                            tr.font-weight-bold 
-                                td
-                                    | Probenart 
-                                td 
-                                    table 
-                                        tr
-                                            td 
-                                                span#nminGzogen
+                    .row
+                        .col-md-6 Kundennummer: 
+                        .col-md-6
+                            a.nav-linkTableA#kundenNr(style='color:#58634C; cursor: pointer;', onClick="kundenAnsehen(document.getElementById('kundenNr').textContent)")
+                    .row
+                        .col-md-6 Probennummer: 
+                        .col-md-6
+                            span#probenNr
+                    .row
+                        .col-md-6 Beproben ab: 
+                        .col-md-6
+                            span#beprobenAb
+                    .row
+                        .col-md-6 Nutzung: 
+                        .col-md-6
+                            span#nutzung
+                    .row
+                        .col-md-6 Schlagname: 
+                        .col-md-6
+                            span#schlagBz
+                    .row
+                        .col-md-6 Probenart 
+                        .col-md-6
+                            span#nminGzogen
+                            span#sminGzogen
+                            span#humusGzogen
+                            span#cnGzogen
+                    .row
+                        .col-md-6 Flächengröße 
+                        .col-md-6
+                            span#fleachenGroesse h                                  
 
-                                            td 
-                                                span#sminGzogen
-
-                                            td 
-                                                span#humusGzogen
-
-                                            td 
-                                                span#cnGzogen
-                            tr.font-weight-bold 
-                                td
-                                    | Flächengröße 
-                                td
-                                    table 
-                                        tr
-                                            td 
-                                                span#fleachenGroesse
-
-                                            td  h 
-                                    
+                                 
 
                 .modal-footer
                     button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="kmlerstellen()", class='btn btn-primary button float-right bestellbutton') KML erstellen
-
 
     #ModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
         .modal-dialog.modal-dialog-centered(role='document')
@@ -134,7 +109,6 @@ block content
                     button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="kmlerstellenMehrere()", class='btn btn-primary button float-right bestellbutton') KML erstellen
                     button.btn.btn-primary(type='button' data-toggle='modal' data-target='#ModalProbeBearbeitet' id='updatebutton', class='btn btn-primary button float-right bestellbuttont' style='margin-top: 5px; margin-right: 15px') Proben gezogen
 
-
     #ModalProbeBearbeitet.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
         .modal-dialog.modal-dialog-centered(role='document')
             .modal-content.neutral-backgroundcolor
@@ -142,13 +116,11 @@ block content
                     h5#exampleModalLongTitle.modal-title.text-white Probe bearbeitet am:
                     button.close(type='button' data-dismiss='modal' aria-label='Close')
                         span(aria-hidden='true') &times;
-                    // Modal-Body
                 .modal-body 
                     .input-group.date(data-provide="datepicker")
                         input#datepicker(type="date" class="form-control")
                         .input-group-addon
                             span.glyphicon.glyphicon-th
-                // Modal-Body
                 .modal-body
                     button.btn.btn-primary(type='button', style='margin-top: 5px', id='kmlbutton', onClick="fleachwurdenBearbeitet(document.getElementById('datepicker').value"+","+dieUserID+")", class='btn btn-primary button float-right bestellbutton') Proben gezogen
         div#loadingIndicator(style='display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); color: white; text-align: center; line-height: 100vh;')
@@ -159,10 +131,11 @@ block content
 
         const today = new Date();
         const todayFormatted = today.toISOString().split('T')[0];
+
+        
         document.getElementById('datepicker').value = todayFormatted;
 
         function fleachwurdenBearbeitet(dateValue,userID) {
-            console.log('die userid : ' + userID)
             const selectedProducts = [];
             for (let index = 0; index < includedFlaechen.length; index++) {
                 var EminValue = 'n';
@@ -185,12 +158,6 @@ block content
                 if (cnGzogen === 1) {
                 CheckboxCnValue = 'j';
                 }
-
-        
-        
-                //TODO HIER EINTRAGEN WENN INPUT GEÄNDERT WIRD DATE MUSS AUCH!!!
-
-                console.log('userid:'+ includedFlaechen[index].kundennummer)
             
                     const productInfo = {
                         kundennummer: includedFlaechen[index].kundennummer,
@@ -209,7 +176,6 @@ block content
 
             document.getElementById('loadingIndicator').style.display = 'block';
 
-
             fetch('/products/ProbeWurdeGezogen', {
                 method: 'PUT',
                 credentials: 'include',
@@ -223,14 +189,14 @@ block content
             .catch(error => console.error('Error:', error));
         }
 
-
-        function kundenAnsehen(kundenummer) {
+        function kundenAnsehen(kundennummer) {
             var link = document.getElementById('kundenNr');
-            link.href = '/products/' + kundenummer;
-            link.click();  // Diese Zeile wird den Link programmatisch anklicken
+            link.href = '/products/' + kundennummer;
+            link.click();  
         }
 
-        var coordinatesArray = !{JSON.stringify(Fleachen)};
+        var coordinatesArrayAll = !{JSON.stringify(Fleachen)};
+        var coordinatesArray = coordinatesArrayAll.winterung;
         var map = L.map('map').setView([52.849226, 7.913939], 13);
 
         // OpenStreetMap Layer hinzufügen
@@ -241,31 +207,9 @@ block content
         }).addTo(map);
 
 
-        if(coordinatesArray.length > 0){ 
-            var minLat = Number.POSITIVE_INFINITY;
-            var maxLat = Number.NEGATIVE_INFINITY;
-            var minLng = Number.POSITIVE_INFINITY;
-            var maxLng = Number.NEGATIVE_INFINITY;
-
-            for (var i = 0; i < coordinatesArray.length; i++) {
-                var latitude = parseFloat(coordinatesArray[i].FKOORDINATENIDLAT);
-                var longitude = parseFloat(coordinatesArray[i].FKOORDINATENIDLNG);
-
-                minLat = Math.min(minLat, latitude);
-                maxLat = Math.max(maxLat, latitude);
-                minLng = Math.min(minLng, longitude);
-                maxLng = Math.max(maxLng, longitude);
-            }
-
-            var centerLat = (minLat + maxLat) / 2;
-            var centerLng = (minLng + maxLng) / 2;
-
-            var bounds = L.latLngBounds(L.latLng(minLat, minLng), L.latLng(maxLat, maxLng));
-            map.fitBounds(bounds);
-        }
 
         var flaechenID = 0;
-        var coordinates = []; // Hier werden die Koordinaten für die aktuelle Fläche gesammelt
+        var coordinates = []; 
 
         function formatDate(dateString) {
             var date = new Date(dateString);
@@ -303,7 +247,6 @@ block content
             }
         });
 
-
         var includedFlaechen = [];
 
         map.addControl(drawControl);
@@ -311,26 +254,42 @@ block content
                 
         setUpdateMap();
 
+        function initializeModalEventListeners() {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polygon) {
+                    layer.on('click', function (e) {
+                        $('#exampleModalCenter').modal('show');
+                    });
+                }
+            });
+        }
+
+        initializeModalEventListeners();
+
+
 
         map.on('draw:created', function (e) {
             includedFlaechen = [];
-
-            console.log(includedFlaechen + 'hier ')
             var layerEingezeichnet = e.layer;
             drawnItems.addLayer(layerEingezeichnet);
-            console.log(layerEingezeichnet.getLatLngs()[0]);
 
             map.eachLayer(function (layer) {
                 if (layer instanceof L.Polygon) {
                     if (isInnerPolygonInsideOuterPolygon(layer, layerEingezeichnet)) {                        
-                        var fleachenErstellt = { flaechenID: layer.options.info.probenNr, kundennummer: layer.options.info.kundenNr, nmin: layer.options.info.nminGzogen, smin: layer.options.info.sminGzogen, humus: layer.options.info.humusGzogen, cn: layer.options.info.cnGzogen};
+                        var fleachenErstellt = { 
+                            flaechenID: layer.options.info.probenNr, 
+                            kundennummer: layer.options.info.kundenNr, 
+                            nmin: layer.options.info.nminGzogen, 
+                            smin: layer.options.info.sminGzogen, 
+                            humus: layer.options.info.humusGzogen, 
+                            cn: layer.options.info.cnGzogen
+                        };
                         includedFlaechen.push(fleachenErstellt);
                     }  
                 }
             });
             $('#ModalCenter').modal('show');
         });
-
 
 
         function isPointInsidePolygon(point, polygon) {
@@ -350,8 +309,8 @@ block content
         }
 
         function kmlerstellen() {
-            var produktid = document.getElementById('probenNr').textContent;
-
+            var produktid = [document.getElementById('probenNr').textContent ,document.getElementById('kundenNr').textContent];
+            console.log(produktid)
             
             fetch('/products/generateKmlFile', {
                 method: 'PUT',
@@ -359,23 +318,17 @@ block content
                 headers: {
                 'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ productIDs: produktid })
+                body: JSON.stringify({ productIDs: produktid, nurEinKML: true })
             })
 
             .then(response => response.text())
             .then(url => {
                 var blob = new Blob([url], { type: 'application/vnd.google-earth.kml+xml' });
-
-                // Erstelle einen "a" HTML-Element mit einem "download"-Attribut
                 var link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = "Fleache"+produktid+".kml";
-            
-                // Füge den Link zum DOM hinzu und simuliere einen Klick
+                link.download = "Fleache"+document.getElementById('kundenNr').textContent+"_"+document.getElementById('probenNr').textContent+".kml";
                 document.body.appendChild(link);
                 link.click();
-            
-                // Entferne den Link aus dem DOM
                 document.body.removeChild(link);
             })
             .catch(error => console.error('Error:', error));
@@ -385,9 +338,8 @@ block content
             var produktid = []
 
             for (const id of includedFlaechen) {
-                produktid.push(id.flaechenID)
+                produktid.push([id.flaechenID,id.kundennummer])
             }
-
             
             fetch('/products/generateKmlFile', {
                 method: 'PUT',
@@ -395,23 +347,17 @@ block content
                 headers: {
                 'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ productIDs: produktid })
+                body: JSON.stringify({ productIDs: produktid, nurEinKML: false })
             })
 
             .then(response => response.text())
             .then(url => {
                 var blob = new Blob([url], { type: 'application/vnd.google-earth.kml+xml' });
-
-                // Erstelle einen "a" HTML-Element mit einem "download"-Attribut
                 var link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
                 link.download = "FleacheMehrere.kml";
-            
-                // Füge den Link zum DOM hinzu und simuliere einen Klick
                 document.body.appendChild(link);
                 link.click();
-            
-                // Entferne den Link aus dem DOM
                 document.body.removeChild(link);
             })
             .catch(error => console.error('Error:', error));
@@ -422,11 +368,9 @@ block content
                 location.reload();
             } else if (status === 100) {
                 location.reload()
-                window.location.href = '/cart'; // Ändere die URL entsprechend deiner Seite 
-            }  // Hier die Seite neu laden
+                window.location.href = '/cart'; 
+            }  
              else if (status === 404) {
                 console.error('ERROR')
             }
         }
-
-

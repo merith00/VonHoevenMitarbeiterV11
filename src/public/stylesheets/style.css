@@ -1,33 +1,110 @@
 /* Custom CSS für das Zentrieren des Inhalts */
 body, html {
-    height: 100%;
+  height: 100%;
 }
 
 :root {
-    --primary-color: #58634C;
-    --secondary-color: #DADDC8;
-    --accent-color: #79B428;
-    --neutral-color: #A4A4A4;
-   }
+  --primary-color: #58634C;
+  --secondary-color: #DADDC8;
+  --accent-color: #79B428;
+  --neutral-color: #A4A4A4;
+}
+
+.kundenInfo label{
+  color: white !important;
+  font-weight: 300;
+}
+
+.tab-item.active{
+  background-color: var(--accent-color) !important;
+}
+
+label{
+  margin-bottom: 0px !important
+}
+
+
+.close   {
+  background-color: var(--neutral-color) !important;
+}
+
+.close:hover  {
+  color: var(--primary-color) !important;
+  background-color: #959595 !important;
+  font-weight: 800  ;
+}
+
+
    
-.primary-backgroundcolor {background-color: var(--primary-color);}
-.secondary-backgroundcolor {background-color: var(--secondary-color);}
-.accent-backgroundcolor {background-color: var(--accent-color);}
-.neutral-backgroundcolor {background-color: var(--neutral-color);}
+.primary-backgroundcolor {background-color: var(--primary-color) !important;}
+.secondary-backgroundcolor {background-color: var(--secondary-color) !important;}
+.accent-backgroundcolor {background-color: var(--accent-color) !important;}
+.neutral-backgroundcolor {background-color: var(--neutral-color) !important;}
 
 
-.primary-color {color: var(--primary-color);}
-.secondary-color {color: var(--secondary-color);}
-.accent-color {color: var(--accent-color);}
-.neutral-color {color: var(--neutral-color);}
+.primary-color {color: var(--primary-color) !important;}
+.secondary-color {color: var(--secondary-color) !important;}
+.accent-color {color: var(--accent-color) !important;}
+.neutral-color {color: var(--neutral-color) !important;}
 
-.button {
-    background-color: var(--accent-color);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-  }
+button {
+  background-color: var(--accent-color) !important;
+  color: white;
+  padding: 10px 20px;
+  border: none !important;
+  cursor: pointer;
+}
+
+button:hover{
+  background-color: var(--primary-color) !important;
+}
+
+input[type="checkbox"] {
+  transform: scale(1.8); /* Ändert die Größe der Checkbox auf das 1,5-fache */
+}
+
+.titelTR{
+  font-weight: 600;
+  text-align: center;
+}
+
+.titelTR td{
+  text-align: center;
+  background-color: var(--primary-color) !important;
+  color: var(--secondary-color) !important;
+  border: 1px solid #ddd !important;
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
+  padding-left: 15px !important;
+}
+
+.titelTR td:hover{
+  cursor: pointer;
+  background-color: var(--neutral-color) !important;
+  color: var(--primary-color) !important;
+
+}
+
+
+
+.titelTRAbdatum td{
+  text-align: center;
+  background-color: var(--primary-color) !important;
+  color: var(--secondary-color) !important;
+  border: 1px solid #ddd !important;
+  border-radius: 5px;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+.titelTRAbdatum td:hover{
+  cursor: pointer;
+  background-color: var(--neutral-color) !important;
+  color: var(--primary-color) !important;
+
+}
+
+
 
 .full-height {
     height: 100%;
@@ -55,56 +132,35 @@ body, html {
     margin-bottom: 2px
 }
 
-.navbarSelf:hover {
-    color: var(--accent-color); /* Ändere die Schriftfarbe auf Grau (oder die gewünschte Farbe) */
+
+a.link-dark{
+  font-weight: bold !important;
 }
 
+a.link-dark:hover{
+  color: var(--accent-color) !important;
+}
 
-/* Ändern Sie die Farbe und die Schriftart der Tabs */
 .nav-linkTable {
-    color: black; /* Setzen Sie die gewünschte Textfarbe */
-    font-weight: bold; /* Fett anzeigen */
-    background-color: var(--neutral-color);
-    border-radius: 0%;
-    border: 1px solid var(--primary-color);
-    border-bottom: none;
-  }
+  color: black; /* Setzen Sie die gewünschte Textfarbe */
+  font-weight: bold; /* Fett anzeigen */
+  background-color: var(--neutral-color);
+  border-radius: 0%;
+  border: 1px solid var(--primary-color);
+  border-bottom: none !important;
+}
 
 
 .nav-linkTableA{
-    color: black; /* Setzen Sie die gewünschte Textfarbe */
-    font-weight: bold; /* Fett anzeigen */
-    
-}
+  color: black; /* Setzen Sie die gewünschte Textfarbe */
+  font-weight: bold; /* Fett anzeigen */
+  border-bottom: none !important;
+
   
-
-.nav-link:hover {
-    color: var(--accent-color); /* Ändere die Schriftfarbe auf Grau (oder die gewünschte Farbe) */
-}
-
-.nav-linkTableA:hover {
-    color: var(--accent-color); /* Ändere die Schriftfarbe auf Grau (oder die gewünschte Farbe) */
-    text-decoration: none; /* Entfernt den Unterstrich */
 }
 
 
-.modal-backdrop {
-    display: none;
-  }
 
-
-.modal-content {
-    box-shadow: 0 0 100px rgba(0, 0, 0, 0.2); /* Hier wird ein Schatten hinzugefügt */
-}
-
-input[type="checkbox"] {
-    transform: scale(1.8); /* Ändert die Größe der Checkbox auf das 1,5-fache */
-    color: red !important; /* Hintergrundfarbe ändern */
-}
-
-td p {
-  margin-bottom: 0px !important;
-}
 
 .table-category td{
   padding: 1px !important;
@@ -118,9 +174,6 @@ td p {
   color: white; /* Textfarbe ändern */
 }
 
-.table-fleachenInformationene td{
-  padding: 0px;
-}
 
 .notification-overlay {
   position: fixed;

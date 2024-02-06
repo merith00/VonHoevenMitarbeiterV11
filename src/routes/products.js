@@ -14,6 +14,9 @@ const getKundendatenDieZuZiehenSind = require('../database/oracle').getKundendat
 const getkundenDatenVomAusgewaehltenUser = require('../database/oracle').getkundenDatenVomAusgewaehltenUser
 const getUpdateDatenVomKunden = require('../database/oracle').getUpdateDatenVomKunden
 const kundenzumloeschen = require('../database/oracle').kundenzumloeschen
+const changeNeunzigCm = require('../database/oracle').changeNeunzigCm
+
+
 
 var path = require('path');
 const tokml = require('tokml');
@@ -122,9 +125,9 @@ function readDataFromKMLFile(file, res,req, selectedOption, register) {
   const kmlData = file.data.toString('utf8');
   const xmlDoc = new DOMParser().parseFromString(kmlData);
   const geoJSON = togeojson.kml(xmlDoc);
-  console.log( JSON.stringify(geoJSON) );
 
-  console.log('geojsn ')
+  
+
   onHightLight(geoJSON, res,req,selectedOption, register)
 }
 
@@ -132,6 +135,8 @@ router.get('/', async function(req, res, next) {
   if (req.isAuthenticated()) {
       const userID = req.user.id
       var kundendaten = await getKundendaten()
+
+
       var kundendatenDieZuZiehenSind = await getKundendatenDieZuZiehenSind()
       artikelNrFromCart = []
       const kundendatenUebergabe = kundendaten
@@ -190,14 +195,18 @@ async function InfoToKMLFile(infoProductIDs, res) {
     type: 'FeatureCollection',
     features: infoProductIDs.map(info => {
       const produktinfo = info.produktinfo[0];
+
+
+      
       const flaecheninfo = info.flaecheninfo;
       
       return {
         type: 'Feature',
         properties: {
-          PROBEN_NR: produktinfo.ARTIKELNR,
+          PROBEN_NR: produktinfo.ARTIKELNR + "= " + produktinfo.TIEFE,
+          TIEFE: produktinfo.TIEFE,
           KUNDEN_NR: produktinfo.KUNDENNUMMER,
-          BEPROBENAB: produktinfo.STARTDATUM,
+          BEPROBENAB: produktinfo.ABDATUM,
           NUTZUNG: produktinfo.FLEACHENART,
           SCHLAGBEZ: produktinfo.FLAECHENNAME,
         },
@@ -248,11 +257,15 @@ async function InfoToKMLFile(infoProductIDs, res) {
   for (const info of infoProductIDs) {
     const produktinfo = info.produktinfo[0];
     const flaecheninfo = info.flaecheninfo;
+    var ersteZeile = produktinfo.ARTIKELNR;
+    if(produktinfo.TIEFE === 90){
+      ersteZeile = ersteZeile + "= 60cm" 
+    } 
     xmlString = xmlString + `
         <Placemark>
           <Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
           <ExtendedData><SchemaData schemaUrl="#SELECT">
-              <SimpleData name="PROBEN_NR">`+produktinfo.ARTIKELNR+`</SimpleData>
+              <SimpleData name="PROBEN_NR">`+ersteZeile+`</SimpleData>
               <SimpleData name="KUNDEN_NR">`+produktinfo.KUNDENNUMMER+`</SimpleData>
               <SimpleData name="BEPROBENAB">`+produktinfo.STARTDATUM+`</SimpleData>
               <SimpleData name="NUTZUNG">`+produktinfo.FLEACHENART+`</SimpleData>
@@ -275,17 +288,16 @@ async function InfoToKMLFile(infoProductIDs, res) {
     </Document>
   </kml>`;
   
-  const kml = tokml(geojson, kmlOptions);
-  console.log(kml)
   return xmlString
 }
 
 router.put('/generateKmlFile', async (req,res) => {
   if(req.isAuthenticated()){
     const productIDs = req.body.productIDs;
+    const nurEinKML = req.body.nurEinKML;
     var xmlString;
     try {
-      const infoProductIDs = await getInformationsForGenerateKmlFile(productIDs)
+      const infoProductIDs = await getInformationsForGenerateKmlFile(productIDs,nurEinKML)
       xmlString = await InfoToKMLFile(infoProductIDs, res);
       res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
       res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml');
@@ -308,19 +320,30 @@ router.put('/setUpdateDatenVomKunden', async (req,res) => {
     const plz = req.body.plz;
     const strasse = req.body.strasse;
     const hausnummer = req.body.hausnummer;
-    const geburtsdatum = req.body.date;
-
-    const password = await bcrypt.hash(req.body.password, 10)
-
-
     try {
-      await getUpdateDatenVomKunden(kundennummer,vorname,nachname,email,telefonnummer,ort,plz,strasse,hausnummer,password,geburtsdatum)
+      await getUpdateDatenVomKunden(kundennummer,vorname,nachname,email,telefonnummer,ort,plz,strasse,hausnummer)
       res.sendStatus(200)
     } catch (error) {
       console.error('Fehler:', error);
       res.status(404).send('Fehler beim Hinzufügen der neuen Informatioenen.');
     }
   } 
+});
+
+
+router.put('/changeNeunzigCm', async (req, res) => {
+  if (req.isAuthenticated()) {
+    try {
+      await changeNeunzigCm(req.body.productId, req.body.kundennummer,req.body.checkedNeunzig);
+
+      res.sendStatus(330); // Erfolgreiche Antwort senden
+    } catch (error) {
+      console.error('Fehler:', error);
+      res.status(500).send('Internal Server Error'); // Fehlerantwort senden
+    }
+  } else {
+    res.status(401).send('Unauthorized'); // Nicht authentifiziert, Fehlerantwort senden
+  }
 });
 
 router.put('/funktionFleacheSollBearbeitetWerden', async (req,res) => {
@@ -466,7 +489,6 @@ async function readDataFromZipFile(file, res, req, selectedOption, register, anz
       geojson = convertTOWGSTransverseMercator(geojson);
     }
 
-    console.log( JSON.stringify(geojson) );
     onHightLight(geojson, res, req, selectedOption, register, anzahldateien)
 
   } catch (error) {
@@ -506,18 +528,19 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
     password = req.body.password;
   }
 
-  console.log('anazahldati ' + anzahldateien)
 
 
   if(anzahldateien>1){
     var uebergebeneDaten = []
 
     data.features.forEach(feature => {
+
+
     
 
 
-      var schlagBez = getFirstNonNull(feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM);
-      schlagBez = Buffer.from(schlagBez, 'latin1').toString('utf-8');
+      var schlagBez = getFirstNonNull(feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.name, feature.properties.SCHLAG_NAM);
+      //schlagBez = Buffer.from(schlagBez, 'latin1').toString('utf-8');
       var FleachenID = getFirstNonNull(feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID);
       var dateValue = feature.properties.BEPROBENAB;
       var NUTZUNG = feature.properties.NUTZUNG
@@ -538,7 +561,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
     
       if (schlagBez) {
       } else {
-        schlagBez='0';
+        schlagBez=null;
       }
 
       if (dateValue) {
@@ -564,7 +587,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
       
       }
 
-      console.log('DIE KUNDENUMRE ' + KUNDEN_NR)
+
       
       const requestData = {
         USERID: KUNDEN_NR,
@@ -602,6 +625,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
   } else {
     var statuscodeEinKunde = 100;
 
+
     if(register){
       try {
         var KUNDEN_NR = data.features[0].properties.KUNDEN_NR;
@@ -614,7 +638,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
         }      
 
         const hashedPassword = await bcrypt.hash(password, 10)
-        const result  = await registerUserWithFleachen(KUNDEN_NR, req.body.email, req.body.telefonnummer, hashedPassword,req.body.vorname, req.body.nachname,req.body.date,req.body.ort, req.body.plz, req.body.strasse, req.body.hausnummer, selectedOption)
+        const result  = await registerUserWithFleachen(KUNDEN_NR, req.body.email, req.body.telefonnummer, hashedPassword, password,req.body.vorname, req.body.nachname,req.body.date,req.body.ort, req.body.plz, req.body.strasse, req.body.hausnummer, selectedOption)
         setKundenID(result.kundennummer)
         
         if(result.statusCode===123){
@@ -635,33 +659,23 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
         createTheBestellung(parseInt(getKundenID(), 10), data.features.length)
 
         var uebergebeneDaten = []
+        //console.log(JSON.stringify(data, null, 2));
+
 
         data.features.forEach(feature => {
 
-          var schlagBez = getFirstNonNull(feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM);
-          schlagBez = Buffer.from(schlagBez, 'latin1').toString('utf-8');
+
+
+
+
+          var schlagBez = getFirstNonNull(feature.properties.name, feature.properties.SCHLNAME, feature.properties.name, feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM);
+
+          //schlagBez = Buffer.from(schlagBez, 'latin1').toString('utf-8');
           
-          var FleachenID = getFirstNonNull(feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID);
+          var FleachenID = getFirstNonNull(feature.properties.BU_Schlnr,feature.properties.SCHLNR+''+feature.properties.PRNR_ZAHL,feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID);
           var dateValue = feature.properties.BEPROBENAB;
 
-          console.log(FleachenID)
 
-
-
-
-
-          /*var FleachenID = feature.properties.KUNDEN_NR + '' +  feature.properties.PROBEN_NR + '' + feature.properties.SCHLAGNR;
-
-
-          FleachenID = feature.properties.SCHLAG_NR
-
-          console.log(FleachenID + 'hier')
-    
-
-
-          if(FleachenID === 'undefinedundefinedundefined' ||FleachenID === null || FleachenID === ''){
-            FleachenID = feature.properties.FL_ID
-          }*/
 
           var Kundennummer = getKundenID();
           var NUTZUNG = feature.properties.NUTZUNG
@@ -743,13 +757,13 @@ function getFirstNonNull(...values) {
       return value;
     }
   }
-  return 'null';
+  return null;
 }
 
 async function createTheBestellung(userid,anzahlpositionen){
   try {
     const maxProduktnummerVomKunden = await createBestellung(userid,anzahlpositionen);
-    setProduktIDFORIFNOPRODUKTIDVorgegeben(maxProduktnummerVomKunden.productID)
+    setProduktIDFORIFNOPRODUKTIDVorgegeben(7)//maxProduktnummerVomKunden.productID)
     return maxProduktnummerVomKunden
   } catch (error) {
     console.error('Fehler:', error);
@@ -759,13 +773,8 @@ async function createTheBestellung(userid,anzahlpositionen){
 function handleResponse(status, res, userID) {
   try{
     if (status === 200) {
-        const div = document.createElement('div');
-        div.classList.add('notificationgreen');
-        const p = document.createElement('p');
-        p.textContent = 'Produkt erfolgreich hinzugefügt';
-        div.appendChild(p);
-        document.body.appendChild(div);
-        location.reload()
+      res.redirect('/products');
+      location.reload(); // Hier die Seite neu laden
     } else if(status === 400){
       res.redirect('/products');
     } else if(status === 123){

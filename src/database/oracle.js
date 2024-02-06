@@ -13,10 +13,11 @@ async function ProbeWurdeGezogen(productIDs) {
         // Update only if PROBENSTATUS is not already 3
 
         await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ? AND KUNDENNUMMER = ?", [id.productId,id.kundennummer]);
-        console.log(id.dateValue);
 
 
         await connection.execute("UPDATE PRODUKT SET STARTDATUM = STR_TO_DATE(?, '%Y-%m-%d') WHERE ARTIKELNR = ? AND KUNDENNUMMER = ?", [id.dateValue, id.productId, id.kundennummer]);
+
+        
 
         if (id.NminValue == 'j') {
           await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS, KUNDENNUMMER) VALUES (?, 1, 3,?)", [id.productId,id.kundennummer]);
@@ -53,30 +54,20 @@ async function funktionFleacheSollBearbeitetWerden(productIDs) {
 
   try {
     for (const id of productIDs) {
-      console.log(id)
-      // Check if PROBENSTATUS is not already 1 for the given ID
 
       const [existingProbeStatusRows] = await connection.execute("SELECT PROBENSTATUS FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ? AND PROBENSTATUS = 1  AND KUNDENNUMMER = ?", [id.productId,id.kundennummer]);
       var dateValue = productIDs[0].dateValue;
-      console.log(existingProbeStatusRows.length)
       var sysdate = new Date(); // Hier wird das aktuelle Datum erstellt
       
       if (existingProbeStatusRows.length === 0) {      
         await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ? AND KUNDENNUMMER = ?", [id.productId,id.kundennummer]);
-      
-        if (dateValue === '1') {
-          dateValue = `${sysdate.getFullYear()}-01-01`;
-        } else if (dateValue === '2') {
-          dateValue = `${sysdate.getFullYear()}-02-15`;
-        } else if (dateValue === '3') {
-          dateValue = `${sysdate.getFullYear()}-03-15`;
-        }
+
+
+
         
-        await connection.execute(
-          "UPDATE PRODUKT SET STARTDATUM = STR_TO_DATE(?, '%Y-%m-%d') WHERE ARTIKELNR = ? AND KUNDENNUMMER = ?",
-          [dateValue, id.productId, id.kundennummer]
-        );
-        
+        await connection.execute("UPDATE PRODUKT SET BEARBEITUNGSARTID = ? WHERE ARTIKELNR = ? AND KUNDENNUMMER = ?",
+        [dateValue, id.productId, id.kundennummer]);
+          
 
         if (id.NminValue == 'j') {
           await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS, KUNDENNUMMER) VALUES (?, 1, 1,?)", [id.productId,id.kundennummer]);
@@ -127,36 +118,28 @@ async function funktionFleacheSollBearbeitetWerden(productIDs) {
 
 async function getfleachenFromAllUser() {
   let connection;
-  let flaechen;
 
   try {
+    let connection;
+    let resultsFleachenDaten = {
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    };
+  
     connection = await mysql.createConnection(config);
+    const resultWinterung = await getFlächenNachBearbeitungsID(1, connection);
+    const resultFSommerung = await getFlächenNachBearbeitungsID(2, connection);
+    const resultSSommerung = await getFlächenNachBearbeitungsID(3, connection);
 
-    const [result] = await connection.execute(`
-    SELECT DISTINCT fc.ARTIKELNR, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG, fc.POSITIONSPUNKT, b.ABDATUM,
-    CASE WHEN PP.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_nmin,
-    CASE WHEN PSmin.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_smin,
-    CASE WHEN PHumus.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_humus,
-    CASE WHEN PCN.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_cn,
-    P.FLAECHENNAME, P.STARTDATUM, P.FLEACHENART, P.KUNDENNUMMER, P.BEARBEITUNGSARTID,
-    PEP.PROBENSTATUS
-    FROM FLEACHENKOORDINATE fc
-    JOIN PRODUKT P ON P.ARTIKELNR = fc.ARTIKELNR AND P.KUNDENNUMMER = fc.KUNDENNUMMER
-    JOIN BEARBEITUNGSART b on P.BEARBEITUNGSARTID = b.BEARBEITUNGSARTID
-    JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR AND P.KUNDENNUMMER = PEP.KUNDENNUMMER
-    JOIN BESTELLUNG_ENTHAELT_PRODUKT wp ON wp.ARTIKELNR = P.ARTIKELNR and wp.KUNDENNUMMER = wp.KUNDENNUMMER
-    JOIN BESTELLUNG w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
-    JOIN KUNDE k ON k.KUNDENNUMMER = w.KUNDENNUMMER
-    LEFT JOIN PRODUKT_ENTHAELT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PP.PROBENARTID = 1
-    LEFT JOIN PRODUKT_ENTHAELT_PROBE PSmin ON P.ARTIKELNR = PSmin.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PSmin.PROBENARTID = 2
-    LEFT JOIN PRODUKT_ENTHAELT_PROBE PHumus ON P.ARTIKELNR = PHumus.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PHumus.PROBENARTID = 3
-    LEFT JOIN PRODUKT_ENTHAELT_PROBE PCN ON P.ARTIKELNR = PCN.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PCN.PROBENARTID = 4
-    ORDER BY P.KUNDENNUMMER, fc.ARTIKELNR, fc.POSITIONSPUNKT
-    `);
+    resultsFleachenDaten.winterung = resultWinterung;
+    resultsFleachenDaten.fSommerung = resultFSommerung;
+    resultsFleachenDaten.sSommerung = resultSSommerung;
 
-    return result;
+    return resultsFleachenDaten;
+
   } catch (error) {
-    console.error('Fehler bei der MySQL-Abfrage:', error);
+    console.error('Ouch!', error);
   } finally {
     if (connection) {
       await connection.end();
@@ -193,17 +176,17 @@ async function getFleachenFromUserBestellt(userID) {
   }
 }
 
-async function getInformationsForGenerateKmlFile(productIDs) {
+async function getInformationsForGenerateKmlFile(productIDs,nurEinKML) {
   const connection = await mysql.createConnection(config);
   const infoProductIDs = [];
 
-  try {
-    if (Array.isArray(productIDs)) {
-      for (const id of productIDs) {
 
-        const [infoProdukt] = await connection.execute('SELECT ARTIKELNR, KUNDENNUMMER, STARTDATUM, FLEACHENART, FLAECHENNAME FROM PRODUKT WHERE ARTIKELNR = ?', [id]);
-        const [infoFlaechenkoordinate] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? ORDER BY POSITIONSPUNKT', [id]);
-        const [infoFlaechenkoordinateErste] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND POSITIONSPUNKT = 1', [id]);
+  try {
+    if (Array.isArray(productIDs) && !  nurEinKML) {
+      for (const id of productIDs) {
+        const [infoProdukt] = await connection.execute('SELECT PRODUKT.ARTIKELNR, PRODUKT.KUNDENNUMMER, PRODUKT.STARTDATUM, PRODUKT.FLEACHENART, PRODUKT.FLAECHENNAME, TIEFE.TIEFE, ABDATUM FROM PRODUKT JOIN PRODUKT_ENTHAELT_TIEFE ON PRODUKT.ARTIKELNR = PRODUKT_ENTHAELT_TIEFE.ARTIKELNR AND PRODUKT.KUNDENNUMMER = PRODUKT_ENTHAELT_TIEFE.KUNDENNUMMER JOIN TIEFE ON PRODUKT_ENTHAELT_TIEFE.TIEFENID = TIEFE.TIEFENID JOIN BEARBEITUNGSART B ON B.BEARBEITUNGSARTID = PRODUKT.BEARBEITUNGSARTID WHERE PRODUKT.ARTIKELNR = ? AND PRODUKT.KUNDENNUMMER = ? ', [id[0], id[1]]);
+        const [infoFlaechenkoordinate] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND KUNDENNUMMER = ? ORDER BY POSITIONSPUNKT', [id[0], id[1]]);
+        const [infoFlaechenkoordinateErste] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND POSITIONSPUNKT = 1  AND KUNDENNUMMER = ?', [id[0], id[1]]);
 
         const flaecheninfo = infoFlaechenkoordinate.map(row => `${row.FKOORDINATENIDLNG},${row.FKOORDINATENIDLAT}`);
 
@@ -217,9 +200,10 @@ async function getInformationsForGenerateKmlFile(productIDs) {
         });
       }
     } else {
-      const [infoProdukt] = await connection.execute('SELECT ARTIKELNR, KUNDENNUMMER, STARTDATUM, FLEACHENART, FLAECHENNAME FROM PRODUKT WHERE ARTIKELNR = ?', [productIDs]);
-      const [infoFlaechenkoordinate] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? ORDER BY POSITIONSPUNKT', [productIDs]);
-      const [infoFlaechenkoordinateErste] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND POSITIONSPUNKT = 1', [productIDs]);
+      const [infoProdukt] = await connection.execute('SELECT PRODUKT.ARTIKELNR, PRODUKT.KUNDENNUMMER, PRODUKT.STARTDATUM, PRODUKT.FLEACHENART, PRODUKT.FLAECHENNAME, TIEFE.TIEFE FROM PRODUKT JOIN PRODUKT_ENTHAELT_TIEFE ON PRODUKT.ARTIKELNR = PRODUKT_ENTHAELT_TIEFE.ARTIKELNR AND PRODUKT.KUNDENNUMMER = PRODUKT_ENTHAELT_TIEFE.KUNDENNUMMER JOIN TIEFE ON PRODUKT_ENTHAELT_TIEFE.TIEFENID = TIEFE.TIEFENID WHERE PRODUKT.ARTIKELNR = ? AND PRODUKT.KUNDENNUMMER = ? ', [productIDs[0], productIDs[1]]);
+      const [infoFlaechenkoordinate] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND KUNDENNUMMER = ? ORDER BY POSITIONSPUNKT', [productIDs[0], productIDs[1]]);
+      const [infoFlaechenkoordinateErste] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND POSITIONSPUNKT = 1  AND KUNDENNUMMER = ?', [productIDs[0], productIDs[1]]);
+
       const flaecheninfo = infoFlaechenkoordinate.map(row => `${row.FKOORDINATENIDLNG},${row.FKOORDINATENIDLAT}`);
 
       const flaecheninfoErste = `${infoFlaechenkoordinateErste[0].FKOORDINATENIDLNG},${infoFlaechenkoordinateErste[0].FKOORDINATENIDLAT}`;
@@ -263,13 +247,17 @@ async function getBestllungenFromUser(userID) {
     CASE WHEN PE.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_emin,
     CASE WHEN PE.PROBENARTID IS NOT NULL THEN PE.PROBENSTATUS ELSE 0 END AS statusemin,
     CASE WHEN PS.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_stickstoff,
-    CASE WHEN PS.PROBENARTID IS NOT NULL THEN PS.PROBENSTATUS ELSE 0 END AS statusstickstoff
+    CASE WHEN PS.PROBENARTID IS NOT NULL THEN PS.PROBENSTATUS ELSE 0 END AS statusstickstoff,
+    P.KUNDENNUMMER,
+    TIEFENID
     FROM
     PRODUKT P
     JOIN
     BESTELLUNG_ENTHAELT_PRODUKT B ON P.ARTIKELNR = B.ARTIKELNR AND P.KUNDENNUMMER = B.KUNDENNUMMER
     JOIN
     BESTELLUNG O ON B.KUNDENNUMMER = O.KUNDENNUMMER
+    JOIN
+    PRODUKT_ENTHAELT_TIEFE PT ON P.ARTIKELNR = PT.ARTIKELNR AND P.KUNDENNUMMER = PT.KUNDENNUMMER
     JOIN BEARBEITUNGSART B2 on P.BEARBEITUNGSARTID = B2.BEARBEITUNGSARTID
     LEFT JOIN
     PRODUKT_ENTHAELT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PP.PROBENARTID = 1
@@ -277,8 +265,10 @@ async function getBestllungenFromUser(userID) {
     PRODUKT_ENTHAELT_PROBE PE ON P.ARTIKELNR = PE.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PE.PROBENARTID = 2
     LEFT JOIN
     PRODUKT_ENTHAELT_PROBE PS ON P.ARTIKELNR = PS.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PS.PROBENARTID = 3
+
     WHERE
     O.Kundennummer = ?
+    ORDER BY P.ARTIKELNR
     `, [userID]);
     cart.products = result3;
 
@@ -294,39 +284,34 @@ async function getBestllungenFromUser(userID) {
   }
 }
 
-async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID) {
+
+async function getFlächenNachBearbeitungsID(BEARBEITUNGSARTID) {
   let connection;
   try {
     connection = await mysql.createConnection(config);
 
     const [rows] = await connection.execute(`
-      SELECT 
-        KUNDE.KUNDENNUMMER,
-        KUNDE.VORNAME,
-        KUNDE.NACHNAME,
-        KUNDE.E_MAIL,
-        KUNDE.TELEFONNUMMER,
-        ADRESSE.ORT,
-        BESTELLUNG.ANZAHLPOSITIONEN AS AnzahlFlaechen
-      FROM
-        KUNDE
-        JOIN KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
-        JOIN ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
-          AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
-          AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
-          AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
-        LEFT JOIN BESTELLUNG ON KUNDE.KUNDENNUMMER = BESTELLUNG.KUNDENNUMMER
-        LEFT JOIN BESTELLUNG_ENTHAELT_PRODUKT B ON BESTELLUNG.KUNDENNUMMER = B.KUNDENNUMMER
-        LEFT JOIN PRODUKT P ON B.ARTIKELNR = P.ARTIKELNR
-        LEFT JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
-      WHERE
-        GEODATENGEBERID = ?
-        AND PEP.PROBENSTATUS = 1
-      GROUP BY
-        KUNDE.KUNDENNUMMER, ADRESSE.ORT, KUNDE.TELEFONNUMMER, KUNDE.VORNAME, KUNDE.NACHNAME, KUNDE.E_MAIL
-      ORDER BY
-        KUNDENNUMMER
-    `, [geoID]);
+    SELECT  DISTINCT  fc.ARTIKELNR, fc.KUNDENNUMMER, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG, fc.POSITIONSPUNKT, b.ABDATUM,
+    CASE WHEN PP.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_nmin,
+    CASE WHEN PSmin.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_smin,
+    CASE WHEN PHumus.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_humus,
+    CASE WHEN PCN.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_cn,
+    P.FLAECHENNAME, P.STARTDATUM, P.FLEACHENART, P.KUNDENNUMMER, P.BEARBEITUNGSARTID,
+    PEP.PROBENSTATUS
+    FROM FLEACHENKOORDINATE fc
+    JOIN PRODUKT P ON P.ARTIKELNR = fc.ARTIKELNR AND P.KUNDENNUMMER = fc.KUNDENNUMMER
+    JOIN BEARBEITUNGSART b on P.BEARBEITUNGSARTID = b.BEARBEITUNGSARTID
+    JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR AND P.KUNDENNUMMER = PEP.KUNDENNUMMER
+    JOIN BESTELLUNG_ENTHAELT_PRODUKT wp ON wp.ARTIKELNR = P.ARTIKELNR and wp.KUNDENNUMMER = wp.KUNDENNUMMER
+    JOIN BESTELLUNG w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
+    JOIN KUNDE k ON k.KUNDENNUMMER = w.KUNDENNUMMER
+    LEFT JOIN PRODUKT_ENTHAELT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PP.PROBENARTID = 1
+    LEFT JOIN PRODUKT_ENTHAELT_PROBE PSmin ON P.ARTIKELNR = PSmin.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PSmin.PROBENARTID = 2
+    LEFT JOIN PRODUKT_ENTHAELT_PROBE PHumus ON P.ARTIKELNR = PHumus.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PHumus.PROBENARTID = 3
+    LEFT JOIN PRODUKT_ENTHAELT_PROBE PCN ON P.ARTIKELNR = PCN.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PCN.PROBENARTID = 4
+    WHERE b.BEARBEITUNGSARTID = ?
+    ORDER BY P.KUNDENNUMMER, fc.ARTIKELNR, fc.POSITIONSPUNKT
+    `, [BEARBEITUNGSARTID]);
 
     return rows;
   } catch (error) {
@@ -338,16 +323,169 @@ async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID) {
   }
 }
 
+
+async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID) {
+  let connection;
+  try {
+    connection = await mysql.createConnection(config);
+
+    resultAbdatum = {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    }
+    
+    const resultAlle = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatumAlle(geoID, connection);
+    const resultWinterung = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID, 1, connection);
+    const resultFSommerung = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID, 2, connection);
+    const resultSSommerung = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID, 3, connection);
+
+    resultAbdatum.alle = resultAlle;
+    resultAbdatum.winterung = resultWinterung;
+    resultAbdatum.fSommerung = resultFSommerung;
+    resultAbdatum.sSommerung = resultSSommerung;
+
+    return resultAbdatum;
+  } catch (err) {
+    console.error('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getKundenDatenMitGeoDatenDieZuZiehenSindAbdatumAlle(geoID) {
+  let connection;
+  try {
+    connection = await mysql.createConnection(config);
+    const [rows] = await connection.execute(`
+    SELECT
+    KUNDE.KUNDENNUMMER,
+    KUNDE.VORNAME,
+    KUNDE.NACHNAME,
+    KUNDE.E_MAIL,
+    KUNDE.TELEFONNUMMER,
+    ADRESSE.ORT,
+    COUNT(P.ARTIKELNR) AS AnzahlFlaechen
+FROM
+    KUNDE
+    JOIN KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
+    JOIN ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
+      AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
+      AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
+      AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
+    LEFT JOIN PRODUKT P ON KUNDE.KUNDENNUMMER = P.KUNDENNUMMER
+    JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
+      AND P.KUNDENNUMMER = PEP.KUNDENNUMMER
+      AND PEP.PROBENSTATUS = 1
+WHERE GEODATENGEBERID = ?  
+GROUP BY
+    KUNDE.KUNDENNUMMER,
+    KUNDE.VORNAME,
+    KUNDE.NACHNAME,
+    KUNDE.E_MAIL,
+    KUNDE.TELEFONNUMMER,
+    ADRESSE.ORT
+    `, [geoID]);
+
+    return rows;
+  } catch (err) {
+    console.error('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID,bearbeitungsid) {
+  let connection;
+  try {
+    connection = await mysql.createConnection(config);
+
+    const [rows] = await connection.execute(`
+        SELECT
+        KUNDE.KUNDENNUMMER,
+        KUNDE.VORNAME,
+        KUNDE.NACHNAME,
+        KUNDE.E_MAIL,
+        KUNDE.TELEFONNUMMER,
+        ADRESSE.ORT,
+        COUNT(P.ARTIKELNR) AS AnzahlFlaechen
+    FROM
+        KUNDE
+        JOIN KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
+        JOIN ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
+          AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
+          AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
+          AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
+        LEFT JOIN PRODUKT P ON KUNDE.KUNDENNUMMER = P.KUNDENNUMMER
+        JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
+          AND P.KUNDENNUMMER = PEP.KUNDENNUMMER
+          AND PEP.PROBENSTATUS = 1
+    WHERE GEODATENGEBERID = ? AND BEARBEITUNGSARTID = ?
+    GROUP BY
+        KUNDE.KUNDENNUMMER,
+        KUNDE.VORNAME,
+        KUNDE.NACHNAME,
+        KUNDE.E_MAIL,
+        KUNDE.TELEFONNUMMER,
+        ADRESSE.ORT
+    `, [geoID,bearbeitungsid]);
+
+    return rows;
+  } catch (err) {
+    console.error('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
 async function getKundendatenDieZuZiehenSind() {
   let connection;
   let resultsKundendaten = {
-    lufa: [],
-    claas: [],
-    gsagri: [],
-    lwkniedersachsen: [],
-    maehlmann: [],
-    sonstiges: [],
+    lufa: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    claas: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    gsagri: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    lwkniedersachsen: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    maehlmann: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    sonstiges: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
   };
+
 
   try {
     connection = await mysql.createConnection(config);
@@ -379,12 +517,42 @@ async function getKundendatenDieZuZiehenSind() {
 async function getKundendaten() {
   let connection;
   let resultsKundendaten = {
-    lufa: [],
-    claas: [],
-    gsagri: [],
-    lwkniedersachsen: [],
-    maehlmann: [],
-    sonstiges: [],
+    lufa: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    claas: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    gsagri: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    lwkniedersachsen: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    maehlmann: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
+    sonstiges: {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    },
   };
 
   try {
@@ -392,14 +560,14 @@ async function getKundendaten() {
 
     const resultLufa = await getKundenDatenMitGeoDaten(1, connection);
     const resultclaas = await getKundenDatenMitGeoDaten(2, connection);
-    const resultgsagri = await getKundenDatenMitGeoDaten(3, connection);
+    const resultGsagri = await getKundenDatenMitGeoDaten(3, connection);
     const resultlwkniedersachsen = await getKundenDatenMitGeoDaten(4, connection);
     const resultmaehlmann = await getKundenDatenMitGeoDaten(5, connection);
     const resultsonsttiges = await getKundenDatenMitGeoDaten(6, connection);
 
     resultsKundendaten.lufa = resultLufa;
     resultsKundendaten.claas = resultclaas;
-    resultsKundendaten.gsagri = resultgsagri;
+    resultsKundendaten.gsagri = resultGsagri;
     resultsKundendaten.lwkniedersachsen = resultlwkniedersachsen;
     resultsKundendaten.maehlmann = resultmaehlmann;
     resultsKundendaten.sonstiges = resultsonsttiges;
@@ -419,33 +587,109 @@ async function getKundenDatenMitGeoDaten(geoID) {
   try {
     connection = await mysql.createConnection(config);
 
+    resultAbdatum = {
+      alle: [],
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    }
+    
+    const resultAlle = await getKundenDatenMitGeoDatenAbdatumAlle(geoID, connection);
+    const resultWinterung = await getKundenDatenMitGeoDatenAbdatum(geoID, 1, connection);
+    const resultFSommerung = await getKundenDatenMitGeoDatenAbdatum(geoID, 2, connection);
+    const resultSSommerung = await getKundenDatenMitGeoDatenAbdatum(geoID, 3, connection);
+
+    resultAbdatum.alle = resultAlle;
+    resultAbdatum.winterung = resultWinterung;
+    resultAbdatum.fSommerung = resultFSommerung;
+    resultAbdatum.sSommerung = resultSSommerung;
+
+    return resultAbdatum;
+  } catch (err) {
+    console.error('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getKundenDatenMitGeoDatenAbdatumAlle(geoID) {
+  let connection;
+  try {
+    connection = await mysql.createConnection(config);
     const [rows] = await connection.execute(`
-    SELECT KUNDE.KUNDENNUMMER,
+    SELECT
+    KUNDE.KUNDENNUMMER,
     KUNDE.VORNAME,
     KUNDE.NACHNAME,
     KUNDE.E_MAIL,
     KUNDE.TELEFONNUMMER,
-    ADRESSE.ORT, BESTELLUNG.ANZAHLPOSITIONEN AS AnzahlFlaechen
-    FROM KUNDE
-    Join BESTELLUNG  on KUNDE.KUNDENNUMMER = BESTELLUNG.KUNDENNUMMER
-      JOIN
-    KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
-    JOIN
-    ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
-    AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
-    AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
-    AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
-    LEFT JOIN
-    BESTELLUNG_ENTHAELT_PRODUKT B ON BESTELLUNG.KUNDENNUMMER = B.KUNDENNUMMER
-    LEFT JOIN
-    PRODUKT P ON B.ARTIKELNR = P.ARTIKELNR
-    WHERE
-    GEODATENGEBERID = ?
-    GROUP BY
-    KUNDE.KUNDENNUMMER, ADRESSE.ORT, KUNDE.TELEFONNUMMER, KUNDE.VORNAME, KUNDE.NACHNAME, KUNDE.E_MAIL
-    ORDER BY
-    KUNDENNUMMER;
+    ADRESSE.ORT,
+    COUNT(P.ARTIKELNR) AS AnzahlFlaechen
+FROM
+    KUNDE
+    JOIN KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
+    JOIN ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
+      AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
+      AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
+      AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
+    LEFT JOIN PRODUKT P ON KUNDE.KUNDENNUMMER = P.KUNDENNUMMER
+    JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
+      AND P.KUNDENNUMMER = PEP.KUNDENNUMMER
+WHERE GEODATENGEBERID = ? 
+GROUP BY
+    KUNDE.KUNDENNUMMER,
+    KUNDE.VORNAME,
+    KUNDE.NACHNAME,
+    KUNDE.E_MAIL,
+    KUNDE.TELEFONNUMMER,
+    ADRESSE.ORT
     `, [geoID]);
+
+    return rows;
+  } catch (err) {
+    console.error('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getKundenDatenMitGeoDatenAbdatum(geoID,bearbeitungsid) {
+  let connection;
+  try {
+    connection = await mysql.createConnection(config);
+
+    const [rows] = await connection.execute(`
+    SELECT
+    KUNDE.KUNDENNUMMER,
+    KUNDE.VORNAME,
+    KUNDE.NACHNAME,
+    KUNDE.E_MAIL,
+    KUNDE.TELEFONNUMMER,
+    ADRESSE.ORT,
+    COUNT(P.ARTIKELNR) AS AnzahlFlaechen
+FROM
+    KUNDE
+    JOIN KUNDE_HAT_ADRESSE ON KUNDE.KUNDENNUMMER = KUNDE_HAT_ADRESSE.KUNDENNUMMER
+    JOIN ADRESSE ON KUNDE_HAT_ADRESSE.STRASSE = ADRESSE.STRASSE
+      AND KUNDE_HAT_ADRESSE.ORT = ADRESSE.ORT
+      AND KUNDE_HAT_ADRESSE.POSTLEITZAHL = ADRESSE.POSTLEITZAHL
+      AND KUNDE_HAT_ADRESSE.HAUSNUMMER = ADRESSE.HAUSNUMMER
+    LEFT JOIN PRODUKT P ON KUNDE.KUNDENNUMMER = P.KUNDENNUMMER
+    JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
+      AND P.KUNDENNUMMER = PEP.KUNDENNUMMER
+WHERE GEODATENGEBERID = ? AND BEARBEITUNGSARTID = ?
+GROUP BY
+    KUNDE.KUNDENNUMMER,
+    KUNDE.VORNAME,
+    KUNDE.NACHNAME,
+    KUNDE.E_MAIL,
+    KUNDE.TELEFONNUMMER,
+    ADRESSE.ORT
+    `, [geoID,bearbeitungsid]);
 
     return rows;
   } catch (err) {
@@ -519,7 +763,7 @@ async function anderPasswort(userID, passwordNewInput) {
   }
 }
 
-async function registerUserWithFleachen(kundennummer, email, telefonnummer, password, vorname, nachname, geburtsdatum, ort, plz, strasse, hausnummer, selectedOption) {
+async function registerUserWithFleachen(kundennummer, email, telefonnummer, hashedPassword, password, vorname, nachname, geburtsdatum, ort, plz, strasse, hausnummer, selectedOption) {
   const connection = await mysql.createConnection(config);
 
 
@@ -531,8 +775,8 @@ async function registerUserWithFleachen(kundennummer, email, telefonnummer, pass
     }
 
     const result = await connection.execute(
-      "INSERT INTO KUNDE (Kundennummer, E_MAIL, Telefonnummer, PASSWORD, VORNAME, NACHNAME, KundeSeit, GEODATENGEBERID) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)",
-      [kundennummer, email, telefonnummer, password, vorname, nachname, selectedOption]
+      "INSERT INTO KUNDE (Kundennummer, E_MAIL, Telefonnummer, PASSWORDUNHASHED, PASSWORD, VORNAME, NACHNAME, KundeSeit, GEODATENGEBERID) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)",
+      [kundennummer, email, telefonnummer, password, hashedPassword, vorname, nachname, selectedOption]
     );
 
     ort = ort || 'null';
@@ -680,56 +924,80 @@ async function beiEinemKundenDieFleachenHinzufügen(uebergebeneInformation) {
   try {
     connection = await mysql.createConnection(config);
 
+
+    //console.log(JSON.stringify(uebergebeneInformation,null,2))
+
     
 
     for (const fleachenInformationen of uebergebeneInformation) {
-      if (fleachenInformationen.productid === 'undefinedundefinedundefined') {
-        const result = await connection.execute('SELECT MAX(ARTIKELNR) FROM PRODUKT WHERE Kundennummer = ?', [fleachenInformationen.USERID]);
-        fleachenInformationen.productid = result[0][0] + 1;
-      }
+        if (fleachenInformationen.productid === 'undefinedundefinedundefined' || fleachenInformationen.productid ==='undefinedundefined') {
+          const result = await connection.execute('SELECT MAX(ARTIKELNR) AS MAXARTIKELNUMMER FROM PRODUKT WHERE Kundennummer = ?', [fleachenInformationen.USERID]);
 
-
-      await connection.execute("INSERT INTO PRODUKT (ARTIKELNR, FLAECHENNAME, preis, FOTO, FLEACHENART, Kundennummer, BEARBEITUNGSARTID) VALUES (?, ?, 7, ?, ?, ?, ?)",
-        [fleachenInformationen.productid, fleachenInformationen.flaechenname, fleachenInformationen.imageElement, fleachenInformationen.fleachenart, fleachenInformationen.USERID, fleachenInformationen.selectedOptionWinterung]);
-
-      await connection.execute("INSERT INTO PRODUKT_ENTHAELT_TIEFE (ARTIKELNR, TIEFENID, KUNDENNUMMER) VALUES (?, ?, ?)",
-      [fleachenInformationen.productid, fleachenInformationen.tiefenValue, fleachenInformationen.USERID]);
-    
-
-      if (fleachenInformationen.MangatValue === 'j') {
-        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, 1, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.USERID]);
-      }
-      
-      if (fleachenInformationen.EminValue === 'j') {
-          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, 1, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.USERID]);
-      }
-      
-      if (fleachenInformationen.StickstoffValue >= 2 && fleachenInformationen.StickstoffValue <= 4) {
-          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, ?, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.StickstoffValue, fleachenInformationen.USERID]);
-      }
-      
-      for (let j = 0; j < fleachenInformationen.coordinates.length; j++) {
-          try {
-              const position = j + 1;
-              await connection.execute(
-                  "INSERT INTO FLEACHENKOORDINATE (FKOORDINATENIDLAT, FKOORDINATENIDLNG, ARTIKELNR, POSITIONSPUNKT, Kundennummer) VALUES (?, ?, ?, ?, ?)",
-                  [fleachenInformationen.coordinates[j][0], fleachenInformationen.coordinates[j][1], fleachenInformationen.productid, position, fleachenInformationen.USERID]
-              );
-          } catch (error) {
-              break;
+          if ( result[0][0].MAXARTIKELNUMMER !== null && result[0][0].MAXARTIKELNUMMER !== undefined) {
+            fleachenInformationen.productid = result[0][0].MAXARTIKELNUMMER +1; 
+          } else {
+            fleachenInformationen.productid = 1;
           }
-      }
-      
-      await connection.execute('INSERT INTO BESTELLUNG_ENTHAELT_PRODUKT (KUNDENNUMMER, ARTIKELNR) VALUES (?, ?)', [
-          fleachenInformationen.USERID,
-          fleachenInformationen.productid,
-      ]);
+        }
+
+
+
+
+
+          await connection.execute("INSERT INTO PRODUKT (ARTIKELNR, FLAECHENNAME, preis, FOTO, FLEACHENART, Kundennummer, BEARBEITUNGSARTID) VALUES (?, ?, 7, ?, ?, ?, ?)",
+            [fleachenInformationen.productid, fleachenInformationen.flaechenname, fleachenInformationen.imageElement, fleachenInformationen.fleachenart, fleachenInformationen.USERID, fleachenInformationen.selectedOptionWinterung]);
+
+
+            try{
+  
+            await connection.execute("INSERT INTO PRODUKT_ENTHAELT_TIEFE (ARTIKELNR, TIEFENID, KUNDENNUMMER) VALUES (?, ?, ?)",
+            [fleachenInformationen.productid, fleachenInformationen.tiefenValue, fleachenInformationen.USERID]);
+
+
+          if (fleachenInformationen.MangatValue === 'j') {
+            await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, 1, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.USERID]);
+          }
+          
+          if (fleachenInformationen.EminValue === 'j') {
+              await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, 1, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.USERID]);
+          }
+
     
-    }
+        
+        if (fleachenInformationen.StickstoffValue >= 2 && fleachenInformationen.StickstoffValue <= 4) {
+            await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, ?, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.StickstoffValue, fleachenInformationen.USERID]);
+        }
+        
+        for (let j = 0; j < fleachenInformationen.coordinates.length; j++) {
+            try {
+                const position = j + 1;
+                await connection.execute(
+                    "INSERT INTO FLEACHENKOORDINATE (FKOORDINATENIDLAT, FKOORDINATENIDLNG, ARTIKELNR, POSITIONSPUNKT, Kundennummer) VALUES (?, ?, ?, ?, ?)",
+                    [fleachenInformationen.coordinates[j][0], fleachenInformationen.coordinates[j][1], fleachenInformationen.productid, position, fleachenInformationen.USERID]
+                );
+            } catch (error) {
+                break;
+            }
+        }
+        
+        await connection.execute('INSERT INTO BESTELLUNG_ENTHAELT_PRODUKT (KUNDENNUMMER, ARTIKELNR) VALUES (?, ?)', [
+            fleachenInformationen.USERID,
+            fleachenInformationen.productid,
+        ]);
+
+      }  catch (error){
+        console.log('HIER ')
+      }
+    
+    } 
+
+
 
     await connection.commit();
 
   } catch (error) {
+    
+
     console.log('Ouch!', error);
   } finally {
     if (connection) {
@@ -784,16 +1052,19 @@ async function beiMehrerenKundenDieFleachenHinzufügen(res, uebergebeneInformati
       const result = await connection.execute("SELECT KUNDENNUMMER FROM BESTELLUNG WHERE Kundennummer = ?", [
         einzelneInformationen[0].USERID,
       ]);
+
+
       
 
       if (result[0].length === 0) {
-        await connection.execute('INSERT INTO BESTELLUNG(KUNDENNUMMER, ZEITSTEMPEL) VALUES (?, NOW())', [
-          einzelneInformationen[0].USERID,
-        ]);
+        await connection.execute('INSERT INTO BESTELLUNG(KUNDENNUMMER, ANZAHLPOSITIONEN, ZEITSTEMPEL) VALUES (?, ?, NOW())', [einzelneInformationen[0].USERID,einzelneInformationen.length]);
+
+
       }
 
       for (const fleachenInformationen of einzelneInformationen) {
         fleachenInformationen.USERID = einzelneInformationen[0].USERID;
+
 
         if (fleachenInformationen.productid === 'undefinedundefinedundefined') {
           const result = await connection.execute(
@@ -813,56 +1084,37 @@ async function beiMehrerenKundenDieFleachenHinzufügen(res, uebergebeneInformati
         [fleachenInformationen.productid, fleachenInformationen.flaechenname, fleachenInformationen.imageElement, fleachenInformationen.fleachenart, fleachenInformationen.USERID, fleachenInformationen.selectedOptionWinterung]);
 
 
-
-
-
-        await connection.execute(
-          "INSERT INTO PRODUKT_ENTHÄLT_TIEFE(ARTIKELNR, TIEFENID) VALUES (?, ?)",
-          [fleachenInformationen.productid, fleachenInformationen.tiefenValue]
-        );
-
-        if (fleachenInformationen.MangatValue == 'j') {
-          await connection.execute(
-            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)",
-            [fleachenInformationen.productid]
-          );
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_TIEFE (ARTIKELNR, TIEFENID, KUNDENNUMMER) VALUES (?, ?, ?)",
+        [fleachenInformationen.productid, fleachenInformationen.tiefenValue, fleachenInformationen.USERID]);
+      
+  
+        if (fleachenInformationen.MangatValue === 'j') {
+          await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, 1, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.USERID]);
         }
-
-        if (fleachenInformationen.EminValue == 'j') {
-          await connection.execute(
-            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)",
-            [fleachenInformationen.productid]
-          );
+        
+        if (fleachenInformationen.EminValue === 'j') {
+            await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, 1, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.USERID]);
         }
-
-        if (fleachenInformationen.StickstoffValue == 2) {
-          await connection.execute(
-            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 1)",
-            [fleachenInformationen.productid]
-          );
-        } else if (fleachenInformationen.StickstoffValue == 3) {
-          await connection.execute(
-            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 1)",
-            [fleachenInformationen.productid]
-          );
-        } else if (fleachenInformationen.StickstoffValue == 4) {
-          await connection.execute(
-            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 1)",
-            [fleachenInformationen.productid]
-          );
+        
+        if (fleachenInformationen.StickstoffValue >= 2 && fleachenInformationen.StickstoffValue <= 4) {
+            await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS, Kundennummer) VALUES (?, ?, 1, ?)", [fleachenInformationen.productid, fleachenInformationen.StickstoffValue, fleachenInformationen.USERID]);
         }
-
-        for (let j = 0; j <= fleachenInformationen.coordinates.length; j++) {
-          try {
-            const position = j + 1;
-            await connection.execute(
-              "INSERT INTO FLEACHENKOORDINATE(FKOORDINATENIDLAT, FKOORDINATENIDLNG, ARTIKELNR, POSITIONSPUNKT) VALUES (?, ?, ?, ?)",
-              [fleachenInformationen.coordinates[j][0], fleachenInformationen.coordinates[j][1], fleachenInformationen.productid, position]
-            );
-          } catch (error) {
-            break;
-          }
+        
+        for (let j = 0; j < fleachenInformationen.coordinates.length; j++) {
+            try {
+                const position = j + 1;
+                await connection.execute(
+                    "INSERT INTO FLEACHENKOORDINATE (FKOORDINATENIDLAT, FKOORDINATENIDLNG, ARTIKELNR, POSITIONSPUNKT, Kundennummer) VALUES (?, ?, ?, ?, ?)",
+                    [fleachenInformationen.coordinates[j][0], fleachenInformationen.coordinates[j][1], fleachenInformationen.productid, position, fleachenInformationen.USERID]
+                );
+            } catch (error) {
+                break;
+            }
         }
+        
+
+
+
 
         await connection.execute('INSERT INTO BESTELLUNG_ENTHAELT_PRODUKT (KUNDENNUMMER, ARTIKELNR) VALUES (?, ?)', [
           fleachenInformationen.USERID,
@@ -926,7 +1178,7 @@ async function getkundenDatenVomAusgewaehltenUser(userID) {
   }
 }
 
-async function getUpdateDatenVomKunden(kundennummer, vorname, nachname, email, telefonnummer, ort, plz, strasse, hausnummer, password, geburtsdatum) {
+async function getUpdateDatenVomKunden(kundennummer, vorname, nachname, email, telefonnummer, ort, plz, strasse, hausnummer) {
   let connection;
 
   try {
@@ -935,8 +1187,8 @@ async function getUpdateDatenVomKunden(kundennummer, vorname, nachname, email, t
     const [result] = await connection.execute('SELECT * FROM KUNDE WHERE KUNDENNUMMER = ?', [kundennummer]);
 
     const [result2] = await connection.execute(
-      'UPDATE KUNDE SET VORNAME = ?, NACHNAME = ?, TELEFONNUMMER = ?, E_MAIL = ?, PASSWORD = ? WHERE KUNDENNUMMER = ?',
-      [vorname, nachname, telefonnummer, email, password, kundennummer]
+      'UPDATE KUNDE SET VORNAME = ?, NACHNAME = ?, TELEFONNUMMER = ?, E_MAIL = ? WHERE KUNDENNUMMER = ?',
+      [vorname, nachname, telefonnummer, email, kundennummer]
     );
 
     try {
@@ -957,12 +1209,16 @@ async function getUpdateDatenVomKunden(kundennummer, vorname, nachname, email, t
 }
 
 
-async function kundenzumloeschen(kundennummer) {
+async function kundenzumloeschen(kundennummerArray) {
   let connection;
 
   try {
     connection = await mysql.createConnection(config);
-    await connection.execute('delete from KUNDE where KUNDENNUMMER= ?', [kundennummer]);
+    for (let i = 0; i < kundennummerArray.length; i++) {
+      const kundennummer = kundennummerArray[i];
+      await connection.execute('DELETE FROM KUNDE WHERE KUNDENNUMMER = ?', [kundennummer]);
+
+    }
     await connection.commit();
   } catch (err) {
     console.log('Ouch!', err);
@@ -972,6 +1228,34 @@ async function kundenzumloeschen(kundennummer) {
     }
   }
 }
+
+
+
+
+async function changeNeunzigCm(productId,kundennummer,checkedNeunzig) {
+  let connection;
+
+  try {
+    connection = await mysql.createConnection(config);
+    await connection.execute('delete from PRODUKT_ENTHAELT_TIEFE where KUNDENNUMMER= ? and ARTIKELNR= ?', [kundennummer,productId]);
+
+    if(checkedNeunzig){
+      await connection.execute('insert into PRODUKT_ENTHAELT_TIEFE (ARTIKELNR, TIEFENID, KUNDENNUMMER) VALUE  (?,2,?)', [productId,kundennummer]);
+    } else {
+      await connection.execute('insert into PRODUKT_ENTHAELT_TIEFE (ARTIKELNR, TIEFENID, KUNDENNUMMER) VALUE  (?,1,?)', [productId,kundennummer]);
+    }
+
+    await connection.commit();
+  } catch (err) {
+    console.log('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+
 
 module.exports = {
   getUserByEmail,
@@ -986,6 +1270,7 @@ module.exports = {
   registerUserWithFleachen,
   getBestllungenFromUser,
   beiEinemKundenDieFleachenHinzufügen,
+  changeNeunzigCm,
   //getfleachenFromUser,
   getkundenDatenVomAusgewaehltenUser,
   getFleachenFromUserBestellt,

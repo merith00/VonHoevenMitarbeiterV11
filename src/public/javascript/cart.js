@@ -5,28 +5,36 @@ const filterminValue = document.querySelector('[name="filterSmin"]');
 const filterHumusValue = document.querySelector('[name="filterHumus"]');
 const filterCNValue = document.querySelector('[name="filterCN"]');
 
-
 filterNminValue.addEventListener('change', setUpdateMap);
 filterminValue.addEventListener('change', setUpdateMap);
 filterHumusValue.addEventListener('change', setUpdateMap);
 filterCNValue.addEventListener('change', setUpdateMap);
 
-
 const filterWinterung = document.querySelector('[id="filterWinterung"]');
 const filterFSommerung = document.querySelector('[id="filterFSommerung"]');
 const filterSSommerung = document.querySelector('[id="filterSSommerung"]');
-
 
 filterWinterung.addEventListener('change', setUpdateMap);
 filterFSommerung.addEventListener('change', setUpdateMap);
 filterSSommerung.addEventListener('change', setUpdateMap);
 
+
 function setUpdateMap(){
     mapLoeschen();
-    updateMapFilter(filterNminValue,filterminValue,filterHumusValue,filterCNValue)
-    updateMapStartdatum(filterWinterung,filterFSommerung,filterSSommerung)
-    dargestellteFleachen = [];
 
+    if(filterWinterung.checked){
+        coordinatesArray = coordinatesArrayAll.winterung
+    } else if(filterFSommerung.checked) {
+        coordinatesArray = coordinatesArrayAll.fSommerung
+    } else if(filterSSommerung.checked) {
+        coordinatesArray = coordinatesArrayAll.sSommerung
+    }
+
+    updateMapFilter(filterNminValue,filterminValue,filterHumusValue,filterCNValue);
+    setZoomArea();
+    initializeModalEventListeners();
+
+    dargestellteFleachen = [];
 }
 
 function updateMapFilter(filterNminValue,filterSminValue,filterHumusValue,filterCNValue){
@@ -86,73 +94,6 @@ function updateMapFilter(filterNminValue,filterSminValue,filterHumusValue,filter
 
 }
 
-function updateMapStartdatum(filterWinterung,filterFSommerung,filterSSommerung){
-    if (filterWinterung.checked) {
-        coordinatesArray.forEach(function (fleachenStueck) {
-            if(fleachenStueck.BEARBEITUNGSARTID === 1 ){
-                //coordinatesArrayDurchlaufen(fleachenStueck)
-            } else {
-                if (dargestellteFleachen.includes(fleachenStueck.ARTIKELNR)) {
-                    map.eachLayer(function (layer) {
-                        if (layer instanceof L.Polygon && layer.options.info.probenNr === fleachenStueck.ARTIKELNR) {
-                            map.removeLayer(layer);
-                        }
-                    });
-                }
-            }
-        });
-        setCoordinates(coordinates, infos);
-        coordinates = [];
-        flaechenID = 0;
-        kundenID = 0;
-        info = '';
-    } 
-
-    
-    if (filterFSommerung.checked) {
-        coordinatesArray.forEach(function (fleachenStueck) {
-            if(fleachenStueck.BEARBEITUNGSARTID === 2){
-               // coordinatesArrayDurchlaufen(fleachenStueck)
-            } else {
-                if (dargestellteFleachen.includes(fleachenStueck.ARTIKELNR)) {
-                    map.eachLayer(function (layer) {
-                        if (layer instanceof L.Polygon && layer.options.info.probenNr === fleachenStueck.ARTIKELNR) {
-                            map.removeLayer(layer);
-                        }
-                    });
-                }
-            }
-        });
-        setCoordinates(coordinates, infos);
-        coordinates = [];
-        flaechenID = 0;
-        kundenID = 0;
-        info = '';
-    } 
-    
-    
-    if (filterSSommerung.checked) {
-        coordinatesArray.forEach(function (fleachenStueck) {
-            if(fleachenStueck.BEARBEITUNGSARTID === 3){
-               // coordinatesArrayDurchlaufen(fleachenStueck)
-            } else {
-                if (dargestellteFleachen.includes(fleachenStueck.ARTIKELNR)) {
-                    map.eachLayer(function (layer) {
-                        if (layer instanceof L.Polygon && layer.options.info.probenNr === fleachenStueck.ARTIKELNR) {
-                            map.removeLayer(layer);
-                        }
-                    });
-                }
-            }
-        });
-        setCoordinates(coordinates, infos);
-        coordinates = [];
-        flaechenID = 0;
-        kundenID = 0;
-        info = '';
-    } 
-}
-
 function coordinatesArrayDurchlaufen(fleachenStueck){
     if (flaechenID === fleachenStueck.ARTIKELNR && kundenID === fleachenStueck.KUNDENNUMMER) {
         coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
@@ -176,6 +117,7 @@ function coordinatesArrayDurchlaufen(fleachenStueck){
     }  
 
 
+
 }
 
 function setColor(probenstatus){
@@ -187,8 +129,8 @@ function setColor(probenstatus){
 }
 
 function setCoordinates(coordinates, infos){
+    if (coordinates.length > 2 && !dargestellteFleachen.includes([infos.probenNr,infos.kundenNr]) ) {
 
-    if (coordinates.length > 2 && !dargestellteFleachen.includes(infos.probenNr) ) {
         var polygon = L.polygon(coordinates, {
             color: colorArt,
             fillColor: colorArt,
@@ -237,12 +179,12 @@ function setCoordinates(coordinates, infos){
             document.getElementById('humusGzogen').textContent = info.humusGzogen;
             document.getElementById('cnGzogen').textContent = info.cnGzogen;
             document.getElementById('fleachenGroesse').textContent = area;
-            $('#exampleModalCenter').modal('show');
+            //$('#exampleModalCenter').focus();
         });
 
 
 
-        dargestellteFleachen.push(infos.probenNr);
+        dargestellteFleachen.push([infos.probenNr, infos.kundenNr]);
     }
 
 }
@@ -266,5 +208,31 @@ function isInnerPolygonInsideOuterPolygon(innerPolygon, outerPolygon) {
         }
     }
     return true;
+}
+
+function setZoomArea(){
+    
+    if(coordinatesArray.length > 0){ 
+        var minLat = Number.POSITIVE_INFINITY;
+        var maxLat = Number.NEGATIVE_INFINITY;
+        var minLng = Number.POSITIVE_INFINITY;
+        var maxLng = Number.NEGATIVE_INFINITY;
+
+        for (var i = 0; i < coordinatesArray.length; i++) {
+            var latitude = parseFloat(coordinatesArray[i].FKOORDINATENIDLAT);
+            var longitude = parseFloat(coordinatesArray[i].FKOORDINATENIDLNG);
+
+            minLat = Math.min(minLat, latitude);
+            maxLat = Math.max(maxLat, latitude);
+            minLng = Math.min(minLng, longitude);
+            maxLng = Math.max(maxLng, longitude);
+        }
+
+        var centerLat = (minLat + maxLat) / 2;
+        var centerLng = (minLng + maxLng) / 2;
+
+        var bounds = L.latLngBounds(L.latLng(minLat, minLng), L.latLng(maxLat, maxLng));
+        map.fitBounds(bounds);
+    }
 }
 

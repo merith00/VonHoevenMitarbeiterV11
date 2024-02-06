@@ -1,6 +1,35 @@
+
+$(document).ready(function (){
+  $('#example').DataTable();
+});
+
+
+function changeNeunzigCm(productId, kundennummer, checkedNeunzig) {
+
+  fetch('/products/changeNeunzigCm', {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ productId: productId, kundennummer: kundennummer, checkedNeunzig: checkedNeunzig })
+  })
+  .then(response => response.status)
+  .then(status => handleResponse(status))
+  .catch(error => console.error('Error:', error));
+
+}
+
+
+
+
+
+
+var infos = "lufa"
+
+
 //TODO: RELOAD ERSR NACHDEM DURCHGELAUFEN IST
 function checkSelectedOption() {
-  console.log('FFFF')
   var selectedOption = document.getElementById('selectedOption');
   var kundenIdInput = document.getElementById('kundenid');
 
@@ -15,7 +44,7 @@ function checkSelectedOption() {
 
 
 //wird genutzt
-function kmlerstellen(kundenummer) {
+function kmlerstellen(kundennummer) {
   const selectedProducts = [];
   const rows = document.querySelectorAll('tr');
 
@@ -27,9 +56,11 @@ function kmlerstellen(kundenummer) {
     const productIdRow = productNameCell.getAttribute('name');
     const neuBeantragenCheckbox = document.querySelector('input[name="neuBeantragen' + productIdRow + '"]');
     if (neuBeantragenCheckbox.checked) {
-      selectedProducts.push(productIdRow)
+      selectedProducts.push([productIdRow,kundennummer])
     }
   }
+
+
 
   fetch('/products/generateKmlFile', {
     method: 'PUT',
@@ -37,7 +68,7 @@ function kmlerstellen(kundenummer) {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ productIDs: selectedProducts })
+    body: JSON.stringify({ productIDs: selectedProducts})
   })
 
   .then(response => response.text())
@@ -47,7 +78,7 @@ function kmlerstellen(kundenummer) {
     // Erstelle einen "a" HTML-Element mit einem "download"-Attribut
     var link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "Fleachen"+kundenummer+".kml";
+    link.download = "Fleachen"+kundennummer+".kml";
   
     // Füge den Link zum DOM hinzu und simuliere einen Klick
     document.body.appendChild(link);
@@ -184,6 +215,13 @@ function funktionFleacheSollBearbeitetWerden(dateValue, userid) {
     const CheckboxCn = document.querySelector('input[name=CheckboxCn'+productIdRow+']');
 
 
+
+
+
+    
+
+
+
     if (EminCheckbox.checked) {
       EminValue = 'j';
     } 
@@ -214,6 +252,7 @@ function funktionFleacheSollBearbeitetWerden(dateValue, userid) {
         SminValue: EminValue,
         HumusValue: StickstoffValue,
         CnValue: CheckboxCnValue
+
       };
 
       selectedProducts.push(productInfo)
@@ -383,6 +422,8 @@ function handleResponse(status) {
 
 
 
+
+
 function updateDatenVomKunden(data){
   fetch('/products/setUpdateDatenVomKunden', {
     method: 'PUT',
@@ -399,3 +440,4 @@ function updateDatenVomKunden(data){
   location.reload()
   window.location.href = '/products/'+data[0][0];
 }
+
