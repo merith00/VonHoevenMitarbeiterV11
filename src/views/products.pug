@@ -400,12 +400,16 @@ block content
         containerHTML += `
                 </tbody>
               </table>
-              <div class="row py-4">
-                <div class="col-10"></div>
-                <div class="col-2 d-flex justify-content-end">
-                  <button id="loeschenButton" class="btn btn-primary" type="button" data-toggle="modal" data-target="#kundenwirklichloeschen" style="display:none; margin-right:20px; margin-top:10px">Löschen</button>
+                <div class="row py-4">
+                  <div class="col-10"></div>
+                  <div class="col-1 d-flex justify-content-end">
+                    <button class="btn btn-primary" id="loeschenButton" type="button" data-toggle="modal" data-target="#kundenwirklichloeschen" style="display:none; margin-right:20px; margin-top:10px">Löschen</button>
+                  </div>
+                  <div class="col-1 d-flex justify-content-end">
+                    <button class="btn btn-primary" id="kmlButton" type="button" onclick="createKML()" style="margin-top:10px">KML</button>
+                  </div>
                 </div>
-              </div>
+
 
             </div>
         `;
