@@ -183,10 +183,11 @@ block content
                     td.bestellung
                       input.normal(type='checkbox', id="deleteCheckbox", name=dat.KUNDENNUMMER)
             .row.py-4
-              .col-10 
-              .col-2.d-flex.justify-content-end
+              .col-10
+              .col-1.d-flex.justify-content-end
                 button.btn.btn-primary(id='loeschenButton'  type='button' data-toggle='modal' data-target='#kundenwirklichloeschen' style='display:none ; margin-right:20px; margin-top:10px') Löschen  
-
+              .col-1.d-flex.justify-content-end
+                button.btn.btn-primary(id='kmlButton'  type='button' onclick='createKML()' style='margin-top:10px') KML  
 
   script.
       var activeTapGeodatengeber = 'lufa'
@@ -455,6 +456,40 @@ block content
       })
       .then(response => response.status)
       .then(status => handleResponse(status))
+      .catch(error => console.error('Error:', error));
+    }
+
+    function createKML() {
+      var customerToDelete = document.querySelectorAll('input[id="deleteCheckbox"]');
+      var customerNames = [];
+
+      customerToDelete.forEach(function(input) {
+          if (input.checked) {
+              customerNames.push(input.name);
+          }
+      });
+
+
+
+      fetch('/products/generateKmlFileByProducts', {
+          method: 'PUT',
+          credentials: 'include',
+          headers: {
+          'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ customerNames: customerNames})
+      })
+
+      .then(response => response.text())
+      .then(url => {
+          var blob = new Blob([url], { type: 'application/vnd.google-earth.kml+xml' });
+          var link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "FleacheMehrere.kml";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+      })
       .catch(error => console.error('Error:', error));
     }
 

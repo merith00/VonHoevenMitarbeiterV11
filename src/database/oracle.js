@@ -1,3 +1,4 @@
+const { forEach } = require('jszip');
 const config = require('./conf')
 const mysql = require('mysql2/promise'); 
 
@@ -181,10 +182,11 @@ async function getInformationsForGenerateKmlFile(productIDs,nurEinKML) {
   const infoProductIDs = [];
 
 
+
   try {
     if (Array.isArray(productIDs) && !  nurEinKML) {
       for (const id of productIDs) {
-        const [infoProdukt] = await connection.execute('SELECT PRODUKT.ARTIKELNR, PRODUKT.KUNDENNUMMER, PRODUKT.STARTDATUM, PRODUKT.FLEACHENART, PRODUKT.FLAECHENNAME, TIEFE.TIEFE, ABDATUM FROM PRODUKT JOIN PRODUKT_ENTHAELT_TIEFE ON PRODUKT.ARTIKELNR = PRODUKT_ENTHAELT_TIEFE.ARTIKELNR AND PRODUKT.KUNDENNUMMER = PRODUKT_ENTHAELT_TIEFE.KUNDENNUMMER JOIN TIEFE ON PRODUKT_ENTHAELT_TIEFE.TIEFENID = TIEFE.TIEFENID JOIN BEARBEITUNGSART B ON B.BEARBEITUNGSARTID = PRODUKT.BEARBEITUNGSARTID WHERE PRODUKT.ARTIKELNR = ? AND PRODUKT.KUNDENNUMMER = ? ', [id[0], id[1]]);
+        const [infoProdukt] = await connection.execute('SELECT PRODUKT.ARTIKELNR, PRODUKT.KUNDENNUMMER, PRODUKT.STARTDATUM, PRODUKT.FLEACHENART, PRODUKT.FLAECHENNAME, TIEFE.TIEFE, K.VORNAME, K.NACHNAME,  ABDATUM FROM PRODUKT JOIN PRODUKT_ENTHAELT_TIEFE ON PRODUKT.ARTIKELNR = PRODUKT_ENTHAELT_TIEFE.ARTIKELNR AND PRODUKT.KUNDENNUMMER = PRODUKT_ENTHAELT_TIEFE.KUNDENNUMMER JOIN TIEFE ON PRODUKT_ENTHAELT_TIEFE.TIEFENID = TIEFE.TIEFENID JOIN BEARBEITUNGSART B ON B.BEARBEITUNGSARTID = PRODUKT.BEARBEITUNGSARTID JOIN KUNDE K ON PRODUKT.KUNDENNUMMER = K.KUNDENNUMMER WHERE PRODUKT.ARTIKELNR = ? AND PRODUKT.KUNDENNUMMER = ? ', [id[0], id[1]]);
         const [infoFlaechenkoordinate] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND KUNDENNUMMER = ? ORDER BY POSITIONSPUNKT', [id[0], id[1]]);
         const [infoFlaechenkoordinateErste] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND POSITIONSPUNKT = 1  AND KUNDENNUMMER = ?', [id[0], id[1]]);
 
@@ -200,7 +202,7 @@ async function getInformationsForGenerateKmlFile(productIDs,nurEinKML) {
         });
       }
     } else {
-      const [infoProdukt] = await connection.execute('SELECT PRODUKT.ARTIKELNR, PRODUKT.KUNDENNUMMER, PRODUKT.STARTDATUM, PRODUKT.FLEACHENART, PRODUKT.FLAECHENNAME, TIEFE.TIEFE FROM PRODUKT JOIN PRODUKT_ENTHAELT_TIEFE ON PRODUKT.ARTIKELNR = PRODUKT_ENTHAELT_TIEFE.ARTIKELNR AND PRODUKT.KUNDENNUMMER = PRODUKT_ENTHAELT_TIEFE.KUNDENNUMMER JOIN TIEFE ON PRODUKT_ENTHAELT_TIEFE.TIEFENID = TIEFE.TIEFENID WHERE PRODUKT.ARTIKELNR = ? AND PRODUKT.KUNDENNUMMER = ? ', [productIDs[0], productIDs[1]]);
+      const [infoProdukt] = await connection.execute('SELECT PRODUKT.ARTIKELNR, PRODUKT.KUNDENNUMMER, PRODUKT.STARTDATUM, PRODUKT.FLEACHENART, PRODUKT.FLAECHENNAME, TIEFE.TIEFE, K.VORNAME, K.NACHNAME, ABDATUM E FROM PRODUKT JOIN PRODUKT_ENTHAELT_TIEFE ON PRODUKT.ARTIKELNR = PRODUKT_ENTHAELT_TIEFE.ARTIKELNR AND PRODUKT.KUNDENNUMMER = PRODUKT_ENTHAELT_TIEFE.KUNDENNUMMER JOIN TIEFE ON PRODUKT_ENTHAELT_TIEFE.TIEFENID = TIEFE.TIEFENID JOIN KUNDE K ON PRODUKT.KUNDENNUMMER = K.KUNDENNUMMER WHERE PRODUKT.ARTIKELNR = ? AND PRODUKT.KUNDENNUMMER = ? ', [productIDs[0], productIDs[1]]);
       const [infoFlaechenkoordinate] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND KUNDENNUMMER = ? ORDER BY POSITIONSPUNKT', [productIDs[0], productIDs[1]]);
       const [infoFlaechenkoordinateErste] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND POSITIONSPUNKT = 1  AND KUNDENNUMMER = ?', [productIDs[0], productIDs[1]]);
 
@@ -948,7 +950,7 @@ async function beiEinemKundenDieFleachenHinzufügen(uebergebeneInformation) {
             [fleachenInformationen.productid, fleachenInformationen.flaechenname, fleachenInformationen.imageElement, fleachenInformationen.fleachenart, fleachenInformationen.USERID, fleachenInformationen.selectedOptionWinterung]);
 
 
-            try{
+          try{
   
             await connection.execute("INSERT INTO PRODUKT_ENTHAELT_TIEFE (ARTIKELNR, TIEFENID, KUNDENNUMMER) VALUES (?, ?, ?)",
             [fleachenInformationen.productid, fleachenInformationen.tiefenValue, fleachenInformationen.USERID]);
@@ -1257,6 +1259,35 @@ async function changeNeunzigCm(productId,kundennummer,checkedNeunzig) {
 
 
 
+async function getProductIDs(customerNames) {
+  let connection;
+
+  var productIDs = []
+
+  try {
+    for (var customerName of customerNames){
+
+      connection = await mysql.createConnection(config);
+      const [productIDsFromKunde] = await connection.execute("select ARTIKELNR FROM PRODUKT where KUNDENNUMMER= ?", [customerName]);
+      for(var productIDFromKunde of productIDsFromKunde){
+        productIDs.push([productIDFromKunde.ARTIKELNR, customerName]);
+      }
+
+    } 
+
+
+    return productIDs
+
+  } catch (err) {
+    console.log('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+
 module.exports = {
   getUserByEmail,
   getUserById,
@@ -1278,5 +1309,6 @@ module.exports = {
   beiMehrerenKundenDieFleachenHinzufügen,
   ProbeWurdeGezogen,
   getUpdateDatenVomKunden,
-  kundenzumloeschen
+  kundenzumloeschen,
+  getProductIDs
 }

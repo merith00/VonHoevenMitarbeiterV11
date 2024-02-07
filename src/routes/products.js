@@ -15,6 +15,7 @@ const getkundenDatenVomAusgewaehltenUser = require('../database/oracle').getkund
 const getUpdateDatenVomKunden = require('../database/oracle').getUpdateDatenVomKunden
 const kundenzumloeschen = require('../database/oracle').kundenzumloeschen
 const changeNeunzigCm = require('../database/oracle').changeNeunzigCm
+const getProductIDs = require('../database/oracle').getProductIDs
 
 
 
@@ -191,86 +192,52 @@ router.get('/:category', async (req,res)=>{
 
 
 async function InfoToKMLFile(infoProductIDs, res) {
-  const geojson = {
-    type: 'FeatureCollection',
-    features: infoProductIDs.map(info => {
-      const produktinfo = info.produktinfo[0];
+  const currentDate = new Date(); // Aktuelles Datum und Uhrzeit
+  const formattedDate = currentDate.toISOString().split('T')[0]; // Formatieren des Datums im ISO-Format (YYYY-MM-DD)
 
-
-      
-      const flaecheninfo = info.flaecheninfo;
-      
-      return {
-        type: 'Feature',
-        properties: {
-          PROBEN_NR: produktinfo.ARTIKELNR + "= " + produktinfo.TIEFE,
-          TIEFE: produktinfo.TIEFE,
-          KUNDEN_NR: produktinfo.KUNDENNUMMER,
-          BEPROBENAB: produktinfo.ABDATUM,
-          NUTZUNG: produktinfo.FLEACHENART,
-          SCHLAGBEZ: produktinfo.FLAECHENNAME,
-        },
-        geometry: {
-          type: 'Point',
-          coordinates: flaecheninfo // Direkte Verwendung der Koordinaten, ohne ein zusätzliches Array
-        }
-      };
-    })
-  };
-  
-    
-  const kmlOptions = {
-    documentName: 'SELECT',
-    documentDescription: 'My Data',
-    simpleStyle: true,
-    customStyles: {
-      Schema: {
-        name: 'SELECT',
-        id: 'SELECT',
-        SimpleField: [
-          { name: 'PROBEN_NR', type: 'float' },
-          { name: 'KUNDEN_NR', type: 'float' },
-          { name: 'BEPROBENAB', type: 'string' },
-          { name: 'NUTZUNG', type: 'string' },
-          { name: 'SCHLAGBEZ', type: 'string' },
-          // ...
-        ]
-      },
-      Folder: {
-        name: 'SELECT'
-      }
-    }
-  };
 
   var xmlString = `<?xml version="1.0" encoding="utf-8" ?>
   <kml xmlns="http://www.opengis.net/kml/2.2">
     <Document id="root_doc">
-      <Schema name="SELECT" id="SELECT">
+      <Schema name="`+formattedDate+`" id="`+formattedDate+`">
           <SimpleField name="PROBEN_NR" type="float"></SimpleField>
           <SimpleField name="KUNDEN_NR" type="float"></SimpleField>
           <SimpleField name="BEPROBENAB" type="string"></SimpleField>
           <SimpleField name="NUTZUNG" type="string"></SimpleField>
           <SimpleField name="SCHLAGBEZ" type="string"></SimpleField>
-      </Schema>
-      <Folder><name>SELECT</name>`;
+      </Schema>`;
+
+  var aktKundennummer = "";
+  var firstRunde = true;
 
   for (const info of infoProductIDs) {
     const produktinfo = info.produktinfo[0];
     const flaecheninfo = info.flaecheninfo;
-    var ersteZeile = produktinfo.ARTIKELNR;
+    var ersteZeile = produktinfo.FLAECHENNAME;
     if(produktinfo.TIEFE === 90){
       ersteZeile = ersteZeile + "= 60cm" 
     } 
+    if(aktKundennummer != produktinfo.KUNDENNUMMER && firstRunde){
+      xmlString = xmlString + `
+      <Folder><name>`+produktinfo.KUNDENNUMMER+`_`+produktinfo.VORNAME+`_`+produktinfo.NACHNAME+`</name>`;
+      firstRunde = false;
+      aktKundennummer = produktinfo.KUNDENNUMMER;
+    } else if(aktKundennummer != produktinfo.KUNDENNUMMER && !firstRunde){
+      xmlString = xmlString + `
+      </Folder>
+      <Folder><name>`+produktinfo.KUNDENNUMMER+`_`+produktinfo.VORNAME+`_`+produktinfo.NACHNAME+`</name>`;
+      aktKundennummer = produktinfo.KUNDENNUMMER;
+    }
     xmlString = xmlString + `
         <Placemark>
-          <name>`+produktinfo.FLAECHENNAME+`</name>
+          <name>`+ ersteZeile  +`</name>
           <Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
           <ExtendedData><SchemaData schemaUrl="#SELECT">
-              <SimpleData name="PROBEN_NR">`+ersteZeile+`</SimpleData>
+              <SimpleData name="PROBEN_NR">`+produktinfo.ARTIKELNR+`</SimpleData>
               <SimpleData name="KUNDEN_NR">`+produktinfo.KUNDENNUMMER+`</SimpleData>
               <SimpleData name="BEPROBENAB">`+produktinfo.STARTDATUM+`</SimpleData>
               <SimpleData name="NUTZUNG">`+produktinfo.FLEACHENART+`</SimpleData>
-              <SimpleData name="SCHLAGBZ">`+produktinfo.FLAECHENNAME+`</SimpleData>
+              <SimpleData name="SCHLAGBZ">`+ersteZeile+`</SimpleData>
           </SchemaData></ExtendedData>
           <Polygon>
             <outerBoundaryIs>
@@ -281,7 +248,7 @@ async function InfoToKMLFile(infoProductIDs, res) {
               </LinearRing>
             </outerBoundaryIs>
           </Polygon>
-        </Placemark> `
+        </Placemark>`;
   }
 
   xmlString = xmlString + `
@@ -292,12 +259,35 @@ async function InfoToKMLFile(infoProductIDs, res) {
   return xmlString
 }
 
+router.put('/generateKmlFileByProducts', async (req,res) => {
+  if(req.isAuthenticated()){
+    const customerNames = req.body.customerNames;
+    const nurEinKML = false;
+    var xmlString;
+    try {
+
+      const productIDs = await getProductIDs(customerNames)
+      const infoProductIDs = await getInformationsForGenerateKmlFile(productIDs,nurEinKML)
+      xmlString = await InfoToKMLFile(infoProductIDs, res);
+      res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
+      res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml');
+      res.status(200).send(xmlString);
+    } catch (error) {
+      console.error('Fehler:', error);
+      res.status(500).send('Fehler beim Hinzufügen zuWarenkorb.');
+    }
+  }
+});
+
+
+
 router.put('/generateKmlFile', async (req,res) => {
   if(req.isAuthenticated()){
     const productIDs = req.body.productIDs;
     const nurEinKML = req.body.nurEinKML;
     var xmlString;
     try {
+
       const infoProductIDs = await getInformationsForGenerateKmlFile(productIDs,nurEinKML)
       xmlString = await InfoToKMLFile(infoProductIDs, res);
       res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
@@ -660,7 +650,6 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
         createTheBestellung(parseInt(getKundenID(), 10), data.features.length)
 
         var uebergebeneDaten = []
-        //console.log(JSON.stringify(data, null, 2));
 
 
         data.features.forEach(feature => {
