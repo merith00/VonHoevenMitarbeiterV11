@@ -2,3 +2,4 @@
 //wennnureinfeldistmussdasalsvariebelmitgegebenwerdendaessonst problene mit dem is a array gibt  getInformationsForGenerateKmlFile
 #ausstellendasdasfehltvorgefülltwirdmitemail
 
+1. Eaypoint steht in der Datei, das muss eigentlich wie die Fläche Heißen 

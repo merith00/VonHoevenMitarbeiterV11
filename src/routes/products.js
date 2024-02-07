@@ -263,6 +263,7 @@ async function InfoToKMLFile(infoProductIDs, res) {
     } 
     xmlString = xmlString + `
         <Placemark>
+          <name>`+produktinfo.FLAECHENNAME+`</name>
           <Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
           <ExtendedData><SchemaData schemaUrl="#SELECT">
               <SimpleData name="PROBEN_NR">`+ersteZeile+`</SimpleData>
