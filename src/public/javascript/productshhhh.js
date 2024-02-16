@@ -28,6 +28,7 @@ function changeNeunzigCm(productId, kundennummer, checkedNeunzig) {
 var infos = "lufa"
 
 
+
 //TODO: RELOAD ERSR NACHDEM DURCHGELAUFEN IST
 function checkSelectedOption() {
   var selectedOption = document.getElementById('selectedOption');
