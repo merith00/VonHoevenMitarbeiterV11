@@ -325,7 +325,7 @@ router.put('/setUpdateDatenVomKunden', async (req,res) => {
 });
 
 
-const PDFDocument = require('pdfkit');
+//const PDFDocument = require('pdfkit');
 
 // Funktion zum Erstellen der PDF-Datei
 function createPDFDocument() {
@@ -388,7 +388,7 @@ async function fillPDF(documentInformation) {
         return;
       }
 
-      
+
       // 'data' ist jetzt ein Buffer-Objekt, das den Inhalt der PDF-Datei enthält
       console.log('PDF-Buffer:', data);
     });
