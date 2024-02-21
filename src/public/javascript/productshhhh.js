@@ -21,13 +21,7 @@ function changeNeunzigCm(productId, kundennummer, checkedNeunzig) {
 }
 
 
-
-
-
-
 var infos = "lufa"
-
-
 
 //TODO: RELOAD ERSR NACHDEM DURCHGELAUFEN IST
 function checkSelectedOption() {
@@ -41,6 +35,52 @@ function checkSelectedOption() {
   }
 }
 
+
+function createAndDownloadPDF(zweitanschrift, kundennummer) { 
+  document.getElementById('loadingIndicator').style.display = 'block';
+ 
+  const selectedProducts = [];
+  const rows = document.querySelectorAll('tr');
+
+  var path ="/products/pdf/"+zweitanschrift+"/"+kundennummer+"/"
+
+  for (let index = 1; index < rows.length; index++) {
+    const row = rows[index];
+    const productNameCell = row.querySelector('td');
+    const productIdRow = productNameCell.getAttribute('name');
+    const neuBeantragenCheckbox = document.querySelector('input[name="neuBeantragen' + productIdRow + '"]');
+    if (neuBeantragenCheckbox.checked) {
+      path += productIdRow+'_';
+      selectedProducts.push([productIdRow,kundennummer])
+    }
+  }
+
+  path = path.slice(0, -1);
+  window.location.href = path;
+  document.getElementById('loadingIndicator').style.display = 'none';
+
+}
+
+
+function createPDF() {
+
+  fetch('/products/createLUFADocument', {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({})
+  })
+
+  .then(response => response.text())
+  .then()
+  .catch(error => console.error('Error:', error));
+}
+
+function getKundenNummer(){
+  return 'invoice'
+}
 
 
 
@@ -175,18 +215,6 @@ document.getElementById('uploadFormRegister').addEventListener('submit', functio
     method: 'PUT',
     body: formData
   })
-  .then(response => {
-    if (response.ok) {
-      console.log('Anfrage war erfolgreich');
-      // Wenn die Anfrage erfolgreich war, zur ursprünglichen Seite zurückkehren
-      window.location.replace('http://localhost:3000/products/500020');
-    } else {
-      console.error('Fehler beim Aktualisieren der Kundendaten');
-    }
-  })
-  .catch(error => {
-    console.error('Fehler beim Ausführen der Fetch-Anfrage:', error);
-  });
 
   location.reload()
 

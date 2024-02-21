@@ -6,3 +6,20 @@ auf der hauptseite auch nur die zu ziehenden
 
 products seite kml button zum ziehne 
 
+loadbutton wenn pdf erstellt wird und pdf restellen ausstellen wenn keine fläche ausgewähl ist
+
+
+wenn gs agri dann rechnungsempffäner die zweitschrift und Abrechnung Probennahme über Lufa West dann auf nein stehen
+
+
+
+wie wichtig ist das - bei der ID? 
+-- möglichkeit wäre die id als aski abzuspeichern oder eine weitere spalte, wenn das der fall ist, dann soll der string nochmal extra abgepsiechert werden
+
+-- soll neben der Bezeichnung auch noch die id stehen?
+
+
+-- probennummer oder schlagnummer beu 50168
+
+
+-- muss auf der PDF auch stehen, ob das auf 60  cm gezogen wurde?

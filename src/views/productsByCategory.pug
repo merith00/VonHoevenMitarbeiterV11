@@ -1,7 +1,10 @@
 extends layout
 
 block content
+  script(src="/javascript/productshhhh.js")
+  script(src="/javascript/functions.js") 
   - var userCart = []; 
+
 
   if messages.success
     .notificationgreen
@@ -11,6 +14,8 @@ block content
           var notification = document.querySelector(".notificationgreen");
           notification.parentNode.removeChild(notification);
         }, 3000);
+  div#loadingIndicator(style='display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); color: white; text-align: center; line-height: 100vh;')
+      div.spinner-border(text='loading') 
 
   .container-fluid.secondary-backgroundcolor.flex-grow-1.text-center
     .row(style="height:100%;")
@@ -18,12 +23,17 @@ block content
         .row.py-4
           - if (UserCart.products.length > 0)
             .row
-              .col-4.d-flex.align-items-center.justify-content-center
+              .col-3.d-flex.align-items-center.justify-content-center
                 button.btn.btn-primary(type='button', id='kmlbutton', onClick='kmlerstellen("'+UserCart.products[0].KUNDENNUMMER+'")') KML
-              .col-4.d-flex.align-items-center.justify-content-center
+              .col-3.d-flex.align-items-center.justify-content-center
                 button.btn.btn-primary(type='button', data-toggle='modal' data-target='#ModalProbeMussGezogenWerden' id='ModalProbeSollGezogenWerden', class='button') Bearbeiten 
-              .col-4.d-flex.align-items-center.justify-content-center
+              .col-3.d-flex.align-items-center.justify-content-center
                 button.btn.btn-primary(type='button', data-toggle='modal' data-target='#ModalProbeWurdeGezogen' id='updatebutton', class='button') Gezogen
+              .col-3.d-flex.align-items-center.justify-content-center                
+                button.btn.btn-primary(type='button', id='pdfButton', disabled = true, data-toggle='modal', data-target='#ModalPDFErstellen') PDF erstellen
+
+
+
         .row
             .container(style='width: 100%; height: 80vh; overflow-y: auto;')
               .tab-content.text-center
@@ -158,7 +168,7 @@ block content
                                   - if (kundenDatenVomAusgewaehltenUser.E_MAIL)
                                       input.form-control(type='text' value=kundenDatenVomAusgewaehltenUser.E_MAIL name='email')
                                   - else
-                                      input.form-control(type='email' name='email' placeholder='E-Mail')
+                                      input.form-control(type='email' name='email' placeholder='E-Mail' autocomplete="off")
                           .col-md-6
                               .form-group.kundenInfo
                                   label(for='telefonnummer') Telefonnummer
@@ -199,25 +209,81 @@ block content
                       .modal-footer
                         input.btn-primary.button.btn(type='submit', value='Speichern')
 
+
+  #ModalPDFErstellen.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
+    .modal-dialog.modal-dialog-centered(role='document')
+      .modal-content.neutral-backgroundcolor
+        .modal-header
+          h5#exampleModalLongTitle.modal-title.text-white PDF erstellen:
+          button.close(type='button' data-dismiss='modal' aria-label='Close')
+            span(aria-hidden='true') &times;
+        .modal-body 
+          select#seasonSelectorPDF.form-select(type="select" class="form-control" name='voranschrift')
+            - if(kundenDatenVomAusgewaehltenUser.GEODATENGEBERID !==3)
+              option(value=0)= 'Keine Zweitschrift'
+            each entry in zweitanschrift
+              option(value=entry.ID)= entry.VORANSCHRIFT +' '+ entry.VORNAME + ' ' + entry.NACHNAME
+            - if(kundenDatenVomAusgewaehltenUser.GEODATENGEBERID ===3)
+              option(value=0)= 'Keine Zweitschrift'
+            
+        .modal-body
+            button.btn.btn-primary(type='button', id='pdfButton', class='btn btn-primary button float-right bestellbutton', onclick="createAndDownloadPDF(document.getElementById('seasonSelectorPDF').value"+","+dieUserID+")") PDF erstellen
+
   script.
+
+    var getDieAnschrift = !{JSON.stringify(zweitanschrift)};
+
     var coordinatesArrayBestellt = !{JSON.stringify(FleachenBestellt)};
+
+
+
     var kundenDatenVomAusgewaehltenUser = !{JSON.stringify(kundenDatenVomAusgewaehltenUser)};
     var UserCart = !{JSON.stringify(UserCart)};
     var date = new Date(kundenDatenVomAusgewaehltenUser.GEBURTSDATUM);
     var formattedDate = date.toISOString().split('T')[0];
 
-
-
     const today = new Date();
     const todayFormatted = today.toISOString().split('T')[0];
 
+
+
     document.getElementById('datepicker').value = todayFormatted;
+
+
     document.addEventListener('DOMContentLoaded', function () {
       var auswaehlenCheckbox = document.querySelector('input#auswaehlenCheckbox');
       var neuBeantragenCheckboxes = document.querySelectorAll('input#neuBeantragen');
+      var pdfButton = document.getElementById('pdfButton');
+
+
+      neuBeantragenCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+          var allChecked = true;
+          pdfButton.disabled = true;
+          auswaehlenCheckbox.checked = false;
+          neuBeantragenCheckboxes.forEach(function (eachCheckbox) {
+            if (!eachCheckbox.checked) {
+                allChecked = false;
+            }
+            if(eachCheckbox.checked){
+              pdfButton.disabled = false;
+            }
+          });
+          if (allChecked) {
+            auswaehlenCheckbox.checked = true;
+          }
+        });
+      });
+
+
+
 
       auswaehlenCheckbox.addEventListener('change', function () {
         var isChecked = auswaehlenCheckbox.checked;
+
+        pdfButton.disabled = isChecked ? false : true;
+
+
 
         neuBeantragenCheckboxes.forEach(function (checkbox) {
           checkbox.checked = isChecked;

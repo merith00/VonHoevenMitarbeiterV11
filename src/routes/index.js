@@ -28,7 +28,7 @@ router.get('/', async function(req, res, next) {
 // Neuer Code: Hinzufügen des Logout-Event-Listeners
 router.get('/logout', function(req, res, next) {
   // Hier kannst du zusätzliche Aktionen für das Abmelden durchführen, wenn das Tab geschlossen wird
-  console.log('Benutzer wird abgemeldet...');
+  console.info('Benutzer wird abgemeldet...');
 
   req.logout(function(err) {
     if (err) {
@@ -42,7 +42,7 @@ router.post('/login', passport.authenticate('local', {
   failureRedirect: '/',
   failureFlash: true,
 }), (req, res) => {
-  res.redirect('/cart');
+  res.redirect('/products/9202');
 });
 
 router.delete('/logout', function(req, res, next) {

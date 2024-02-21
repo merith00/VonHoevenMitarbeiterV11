@@ -85,7 +85,7 @@ block content
             .row
               .col-md-6
                 .form-group
-                  input.form-control(type='email' name='email' placeholder='E-Mail')
+                  input.form-control(type='email' name='email' placeholder='E-Mail' autocomplete="off")
               .col-md-6
                 .form-group
                   input.form-control(type='tel' name='telefonnummer' placeholder='Telefonnummer')
@@ -109,7 +109,7 @@ block content
                   input.form-control(type='number' id='kundenid' name='kundenid' placeholder='KundenID' disabled)
               .col-md-6
                 .form-group
-                  input.form-control(type='password', placeholder='Passwort', name='password', required)
+                  input.form-control(type='password', placeholder='Passwort', name='password', required, autocomplete="off")
             .input-group.mb-3
               input.input-group-text(type='file', name='sampleFile', accept=".kml,.geojson,.shp,.zip")               
             .modal-footer
@@ -123,10 +123,11 @@ block content
           button.close(type='button' data-dismiss='modal' aria-label='Close')
             span(aria-hidden='true') &times;
         .modal-footer
-          button.btn.button.btn(type='button' data-dismiss='modal' onclick='resetCheckbox()') Abbrechen
           button.btn.btn-danger.button.btn(type='button' id='btnDeleteCustomer' onclick='deleteCustomer()') Löschen
+          button.btn.button.btn(type='button' data-dismiss='modal' style='color: white !important ; background-color: red !important' , onclick='resetCheckbox()') Abbrechen
 
-  - var daten = Daten.lufa.alle
+
+  - var daten = DatenZuZiehen.lufa.alle
 
   .container-fluid.flex-grow-1.justify-content-center.secondary-backgroundcolor
     .row
@@ -135,7 +136,8 @@ block content
         .row.py-4
           .col-6(style='display: flex; align-items: center;')
             button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenterEinKunde' style='margin-right:20px;') Kunde hinzufügen  
-            button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenter' style='margin-right:20px;') Mehrere Kunden hinzufügen  
+            button.btn.btn-primary(type='button' disabled data-toggle='modal' data-target='#exampleModalCenter' style='margin-right:20px;') Mehrere Kunden hinzufügen  
+
           .col-4(style='display: flex; align-items: center;')
             table.table-striped.table-responsive-sm
               thead
@@ -145,7 +147,7 @@ block content
                   td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('fSommerung','abdatum')", name="fSommerung") frühe Sommerung
                   td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('sSommerung','abdatum')", name="sSommerung") späte Sommerung
           .col-2(style='display: flex; align-items: center;')
-            input(type='checkbox', id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
+            input(type='checkbox', checked=true, id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
             label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
         .row.py-4
           .col#tableContainer
@@ -309,7 +311,6 @@ block content
 
 
       function getAbDatum(geodatengeber){
-        console.log(activeTapAbdatum)
         if(activeTapAbdatum === 'alle'){
           return geodatengeber.alle;
         } else if(activeTapAbdatum === 'winterung'){

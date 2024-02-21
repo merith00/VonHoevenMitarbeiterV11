@@ -3,7 +3,12 @@ extends layout
 block content
     .container-fluid.secondary-backgroundcolor.flex-grow-1.text-center
         .row(style="height:100%;")
-            .col-sm-auto.align-items-center.g-3.vertical-center
+            .col-sm-auto.align-items-center.g-4.vertical-center
+                .row.ml-2.mb-3
+                    .col-auto 
+                        input(type='checkbox', checked=true, id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
+                    .col 
+                        label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
                 .row.ml-2 
                     table.table.table-bordered
                         thead
@@ -25,7 +30,6 @@ block content
                                     .form-check
                                         input.form-check-input(type='radio', name='winterung', id='filterSSommerung', unchecked)
                                         label.form-check-label(for='winterung2') Späte Sommerung
-
                 .row.ml-2 
                     table.table.table-bordered
                         thead
@@ -51,6 +55,7 @@ block content
             .col.flex.align-items-center
                 .container-fluid.vertical-center
                     div#map(style='width: 100%; height: 95%;')
+
 
     #exampleModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
         .modal-dialog.modal-dialog-centered(role='document')
@@ -196,7 +201,13 @@ block content
         }
 
         var coordinatesArrayAll = !{JSON.stringify(Fleachen)};
-        var coordinatesArray = coordinatesArrayAll.winterung;
+        var coordinatesArrayAllZuZiehen = !{JSON.stringify(FleachenZuZiehen)};
+    
+        
+
+
+
+        var coordinatesArray = coordinatesArrayAllZuZiehen.winterung;
         var map = L.map('map').setView([52.849226, 7.913939], 13);
 
         // OpenStreetMap Layer hinzufügen
@@ -207,10 +218,6 @@ block content
         }).addTo(map);
 
         L.Control.geocoder().addTo(map);
-
-
-
-
 
         var flaechenID = 0;
         var coordinates = []; 
@@ -314,7 +321,6 @@ block content
 
         function kmlerstellen() {
             var produktid = [document.getElementById('probenNr').textContent ,document.getElementById('kundenNr').textContent];
-            console.log(produktid)
             
             fetch('/products/generateKmlFile', {
                 method: 'PUT',

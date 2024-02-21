@@ -4,6 +4,8 @@ const filterNminValue = document.querySelector('[name="filterNmin"]');
 const filterminValue = document.querySelector('[name="filterSmin"]');
 const filterHumusValue = document.querySelector('[name="filterHumus"]');
 const filterCNValue = document.querySelector('[name="filterCN"]');
+const nurzuZiehen = document.getElementById('nurZuZiehendeKunden');
+
 
 filterNminValue.addEventListener('change', setUpdateMap);
 filterminValue.addEventListener('change', setUpdateMap);
@@ -18,16 +20,28 @@ filterWinterung.addEventListener('change', setUpdateMap);
 filterFSommerung.addEventListener('change', setUpdateMap);
 filterSSommerung.addEventListener('change', setUpdateMap);
 
+nurzuZiehen.addEventListener('change', setUpdateMap);
+
+
+
 
 function setUpdateMap(){
     mapLoeschen();
 
+    var theCoordinates
+
+    if(nurzuZiehen.checked){
+        theCoordinates = coordinatesArrayAllZuZiehen
+    } else {
+        theCoordinates = coordinatesArrayAll
+    }
+
     if(filterWinterung.checked){
-        coordinatesArray = coordinatesArrayAll.winterung
+        coordinatesArray = theCoordinates.winterung
     } else if(filterFSommerung.checked) {
-        coordinatesArray = coordinatesArrayAll.fSommerung
+        coordinatesArray = theCoordinates.fSommerung
     } else if(filterSSommerung.checked) {
-        coordinatesArray = coordinatesArrayAll.sSommerung
+        coordinatesArray = theCoordinates.sSommerung
     }
 
     updateMapFilter(filterNminValue,filterminValue,filterHumusValue,filterCNValue);

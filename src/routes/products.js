@@ -17,6 +17,14 @@ const kundenzumloeschen = require('../database/oracle').kundenzumloeschen
 const changeNeunzigCm = require('../database/oracle').changeNeunzigCm
 const getProductIDs = require('../database/oracle').getProductIDs
 const getDocumentInformation = require('../database/oracle').getDocumentInformation
+const getZweitanschrift = require('../database/oracle').getZweitanschrift
+const getZweitanschriftInformationLetsGo = require('../database/oracle').getZweitanschriftInformationLetsGo
+
+
+
+const pdfService = require('../service/pdf-service')
+
+
 
 
 
@@ -54,7 +62,7 @@ router.post('/upload', async (req, res) => {
     // file, res, req, register, anzahl der hochgeladenen dateien
     handleReadFile(req.files.sampleFile,res,req,false,0)
   } catch (error) {
-    console.log(error)
+    console.error(error)
     handleResponse(123,res)
   }
 });
@@ -63,7 +71,7 @@ router.post('/uploadFormRegister', async (req, res) => {
   try{
     handleReadFile(req.files.sampleFile,res,req,true,0)
   } catch (error) {
-    console.log(error)
+    console.error(error)
     handleResponse(123,res,0)
   }
 });
@@ -172,12 +180,64 @@ function setProduktIDFORIFNOPRODUKTIDVorgegebenWiederAufNull(uebergabe){
   ProduktIDFORIFNOPRODUKTIDVorgegeben = uebergabe;
 }
 
+router.get('/pdf/:zweitanschrift/:kundennummer/:flaechen', async (req, res, next) => {
+  try {
+    const zweitanschrift = req.params.zweitanschrift;
+    const kundennummer = req.params.kundennummer;
+    const flaechen = req.params.flaechen;
+    var flaechenArray = flaechen;
+    if(flaechen.includes('_')){
+      flaechenArray = flaechen.split('_');
+    }
+    const selectedProducts = [];
+    if(Array.isArray(flaechenArray)){
+      flaechenArray.forEach((flaeche) => {
+        selectedProducts.push([kundennummer, flaeche]);
+      });
+    } else {
+      selectedProducts.push([kundennummer, flaechenArray]);
+    }
+
+    const documentInformation = await getDocumentInformationLetsGo(selectedProducts, res);
+    var zweitanschriftInformation = 0;
+    if(zweitanschrift != 0 ){
+      var zweitanschriftInformation = await getZweitanschriftInformationLetsGo(zweitanschrift);
+    }
+
+
+
+    const stream = res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment;filename='+documentInformation.kundenInformation.KUNDENNUMMER+'_Untersuchungsauftrag.pdf'
+    });
+
+    pdfService.buildPDF(
+      (chunk) => stream.write(chunk),
+      () => stream.end(),
+      documentInformation, zweitanschriftInformation
+    );
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+async function getDocumentInformationLetsGo(selectedProducts, res) {
+  try {
+    const documentInformation = await getDocumentInformation(selectedProducts, res);
+    return documentInformation;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
+
 router.get('/:category', async (req,res)=>{
     if(req.isAuthenticated()){
       const userID = req.params.category
       const cartFromUser = await getBestllungenFromUser(userID)
-      //const fleachenFromUser = await getfleachenFromUser(userID)
       const kundenDatenVomAusgewaehltenUser = await getkundenDatenVomAusgewaehltenUser(userID)
+      const zweitanschrift = await getZweitanschrift(); 
       var hatkeinenWarenkorb = false;
       if(cartFromUser.products.length == 0){
         hatkeinenWarenkorb = true;
@@ -186,7 +246,7 @@ router.get('/:category', async (req,res)=>{
       setKundenID(userID)
       const FleachenFromUserBestellt = await getFleachenFromUserBestellt(userID)
       artikelNrFromCart = []
-      res.render('productsByCategory',{title: 'Webshop', dieUserID: userID, kundenDatenVomAusgewaehltenUser: kundenDatenVomAusgewaehltenUser, hatkeinenWarenkorb: hatkeinenWarenkorb, UserCart: cartFromUser, FleachenBestellt: FleachenFromUserBestellt, login: true}) // mit CategoryRequested kann man evtl. die Kategorie in der Auswahlleiste farbig hinterlegen
+      res.render('productsByCategory',{title: 'Webshop', dieUserID: userID, kundenDatenVomAusgewaehltenUser: kundenDatenVomAusgewaehltenUser, hatkeinenWarenkorb: hatkeinenWarenkorb, zweitanschrift: zweitanschrift, UserCart: cartFromUser, FleachenBestellt: FleachenFromUserBestellt, login: true}) // mit CategoryRequested kann man evtl. die Kategorie in der Auswahlleiste farbig hinterlegen
     } else {
       res.redirect('/')
     }
@@ -325,110 +385,6 @@ router.put('/setUpdateDatenVomKunden', async (req,res) => {
 });
 
 
-//const PDFDocument = require('pdfkit');
-
-// Funktion zum Erstellen der PDF-Datei
-function createPDFDocument() {
-  const doc = new PDFDocument();
-  doc.pipe(fs.createWriteStream('output.pdf')); // PDF-Dokument erstellen
-  
-  // Füge den Inhalt zur PDF-Datei hinzu
-  doc.text('Hallo, ich bin eine PDF-Datei.');
-  
-  doc.end(); // PDF-Datei abschließen
-}
-
-
-
-router.put('/createLUFADocument', async (req, res) => {
-  if (req.isAuthenticated()) {
-    const productIDs = req.body.productIDs;
-    try {
-      /*const documentInformation = await getDocumentInformation(productIDs, res);
-      const mergedPdfBytes = await fillPDF(documentInformation);
-
-      // Setzen der Response-Header für das PDF
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename="gefuelltesFormular_all.pdf"');
-
-      // Senden des PDF an den Benutzer
-      res.send(mergedPdfBytes);*/
-
-      createPDFDocument();
-
-      res.download('output.pdf', 'Fleachen' + kundennummer + '.pdf'); // Datei herunterladen
-
-
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Internal Server Error');
-    }
-  } else {
-    res.status(401).send('Unauthorized');
-  }
-});
-
-async function fillPDF(documentInformation) {
-  try {
-    const mergedPdfDoc = await PDFDocument.create();
-    //const pdfPath = 'C:/Users/merit/Downloads/Untersuchungsauftrag N min.pdf';
-    const pdfPath = 'C:/Users/merit/Downloads/BeispielPDF.pdf';
-    const pdfBytes = await fs.readFile(pdfPath);
-
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const form = pdfDoc.getForm();
-
-    const read = fs.readFile(pdfPath);
-    //const pdfFilePath = 'meine_pdf_datei.pdf';
-
-    // PDF-Datei in einen Buffer einlesen
-    fs.readFile(pdfPath, (err, data) => {
-      if (err) {
-        console.error('Fehler beim Lesen der PDF-Datei:', err);
-        return;
-      }
-
-
-      // 'data' ist jetzt ein Buffer-Objekt, das den Inhalt der PDF-Datei enthält
-      console.log('PDF-Buffer:', data);
-    });
-
-    /*for (let i = 0; i < documentInformation.fleachenInformationen.length; i++) {
-      form.getFields()[9].setText(documentInformation.kundenInformation.NACHNAME +', ' + documentInformation.kundenInformation.VORNAME);
-      form.getFields()[8].setText(documentInformation.kundenInformation.STRASSE +', ' + documentInformation.kundenInformation.HAUSNUMMER);
-      form.getFields()[7].setText(documentInformation.kundenInformation.POSTLEITZAHL +', ' + documentInformation.kundenInformation.ORT);
-      form.getFields()[6].setText(''+(documentInformation.kundenInformation.TELEFONNUMMER)+'');
-      form.getFields()[5].setText(documentInformation.kundenInformation.E_MAIL);
-      form.getFields()[11].setText(''+documentInformation.kundenInformation.KUNDENNUMMER+'');
-      form.getFields()[31].setText(documentInformation.fleachenInformationen[i][1]+', '+ documentInformation.fleachenInformationen[i][0]);
-
-      await pdfDoc.save();
-      const pages = await mergedPdfDoc.copyPages(pdfDoc, [0]);
-      pages.forEach((page) => {
-          mergedPdfDoc.addPage(page);
-      });
-    }*/
-
-    var mergedPdfBytes = await mergedPdfDoc.save();
-    mergedPdfBytes = pdfToBlob(mergedPdfBytes)
-    return pdfPath;
-  } catch (error) {
-    console.log('Error: ' + error);
-    throw error;
-  }
-}
-
-async function pdfToBlob(mergedPdfBytes) {
-  // PDF-Datei als ArrayBuffer einlesen
-  //const pdfArrayBuffer = await fetch(pdfFilePath).then(response => response.arrayBuffer());
-
-  // ArrayBuffer in einen Blob umwandeln
-  const pdfBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-  console.log(pdfBlob)
-
-  return pdfBlob;
-}
-
 
 router.put('/changeNeunzigCm', async (req, res) => {
   if (req.isAuthenticated()) {
@@ -482,7 +438,7 @@ router.put('/deleteCustomer', async (req,res) => {
       await kundenzumloeschen(kundeloeschen)
       res.sendStatus(200)
     }catch(error){
-      console.log(error)
+      console.error(error)
       res.sendStatus(404)
     }
   }
@@ -574,12 +530,7 @@ async function readDataFromZipFile(file, res, req, selectedOption, register, anz
     const dbfBuffer = await dbfFileZip.async('nodebuffer');
     //const cpgBuffer = await cpgFileZip.async('nodebuffer');
 
-
-
-
     var geojson = await shapefile.read(shpBuffer, dbfBuffer);
-
-
 
 
     if(isGaus(prjBuffer)){
@@ -635,7 +586,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
     data.features.forEach(feature => {
 
           
-      var SCHLAG_NR, SCHLAG_NAME
+      var SCHLAG_NR = null, SCHLAG_NAME = null
 
       try{
         SCHLAG_NAME = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '<BR>' , '-')
@@ -753,7 +704,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
         }
 
        } catch (error) {
-        console.log(error)
+        console.error(error)
         res.sendStatus(400)   
        }
     }
@@ -765,23 +716,32 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
 
         var uebergebeneDaten = []
 
-
-        data.features.forEach(feature => {
-
-          
+        data.features.forEach(feature => {          
           var SCHLAG_NR = null, SCHLAG_NAME = null
 
           try{
-            SCHLAG_NAME = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '<BR>' , '-')
-            SCHLAG_NR = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '-', null)
+              SCHLAG_NAME = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '<BR>' , '-')
+              SCHLAG_NR = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '-', null)
+          }catch(error){}
+
+          try{
+            if(SCHLAG_NAME === null || SCHLAG_NAME === undefined){
+              SCHLAG_NAME = feature.properties.description
+            }
           }catch(error){}
 
 
-          var schlagBez = getFirstNonNull(feature.properties.name, feature.properties.SCHLNAME, feature.properties.name, feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM,SCHLAG_NAME);
+          var schlagBez = getFirstNonNull([feature.properties.SCHLNAME, feature.properties.name, feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM, SCHLAG_NAME,feature.properties.name],'NAME');
 
-          var FleachenID = getFirstNonNull(SCHLAG_NR, feature.properties.SCHLNR+''+feature.properties.PRNR_ZAHL,feature.properties.BU_Schlnr,feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID);
+          var FleachenID = getFirstNonNull([feature.properties.SCHLNR+''+feature.properties.PRNR_ZAHL,feature.properties.PRNR_ZAHL,feature.properties.BU_Schlnr,feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID, SCHLAG_NR],'ID');
+          
+
+          try{
+            schlagBez = decodeURIComponent(escape(schlagBez));
+          } catch (error){}
+          console.log(schlagBez);
+          
           var dateValue = feature.properties.BEPROBENAB;
-
 
 
           var Kundennummer = getKundenID();
@@ -877,13 +837,25 @@ function getDataFromDiscription(discriptionData,firstCut,lastCut,middelCut){
     return undefined;
 }
 
-function getFirstNonNull(...values) {
+function getFirstNonNull(values,art) {
   for (var value of values) {
-    if (value !== undefined && value !== null) {
-      if (value.includes("-0")) {
-        value = value.replace("-", "");
-      } 
-      return value;
+    if (value !== undefined && value !== null && value !== 'undefinedundefined') {
+      if(art==='ID'){
+        if (typeof value === 'string') {
+          if (value.includes("-")) {
+            value = value.replace("-", "");
+            value = parseInt(value)
+          } 
+        }
+      }
+  
+      if(art==='NAME'){
+        if(isNaN(parseInt(value))){
+          return value;
+        }
+      } else {
+        return value;
+      }
     }
   }
   return null;
@@ -925,7 +897,7 @@ function handleResponse(status, res, userID) {
         location.reload()
     }
   } catch (error) {
-    console.log('Es gab wohl einen Fehler: ' + error)
+    console.error('Es gab wohl einen Fehler: ' + error)
     res.redirect('/products')
   }
 }

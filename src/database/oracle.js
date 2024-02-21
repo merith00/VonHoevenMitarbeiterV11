@@ -40,7 +40,7 @@ async function ProbeWurdeGezogen(productIDs) {
 
     await connection.commit();
   } catch (error) {
-    console.log('Ouch!', error);
+    console.error('Ouch!', error);
   } finally {
     if (connection) {
       await connection.end();
@@ -108,7 +108,7 @@ async function funktionFleacheSollBearbeitetWerden(productIDs) {
 
     await connection.commit();
   } catch (error) {
-    console.log('Ouch!', error);
+    console.error('Ouch!', error);
   } finally {
     if (connection) {
       await connection.end();
@@ -148,6 +148,40 @@ async function getfleachenFromAllUser() {
   }
 }
 
+
+async function getfleachenFromAllUserZuZiehen() {
+  let connection;
+
+  try {
+    let connection;
+    let resultsFleachenDaten = {
+      winterung: [],
+      fSommerung: [],
+      sSommerung: []
+    };
+  
+    connection = await mysql.createConnection(config);
+    const resultWinterung = await getFlächenNachBearbeitungsIDZuZiehen(1,3, connection);
+    const resultFSommerung = await getFlächenNachBearbeitungsIDZuZiehen(2,3 ,connection);
+    const resultSSommerung = await getFlächenNachBearbeitungsIDZuZiehen(3,3, connection);
+
+    resultsFleachenDaten.winterung = resultWinterung;
+    resultsFleachenDaten.fSommerung = resultFSommerung;
+    resultsFleachenDaten.sSommerung = resultSSommerung;
+
+    return resultsFleachenDaten;
+
+  } catch (error) {
+    console.error('Ouch!', error);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+
+
 async function getFleachenFromUserBestellt(userID) {
   let conn;
   let fleachen;
@@ -169,7 +203,7 @@ async function getFleachenFromUserBestellt(userID) {
 
     return fleachen[0];
   } catch (err) {
-    console.log('Ouch!', err);
+    console.error('Ouch!', err);
   } finally {
     if (conn) {
       await conn.end();
@@ -219,7 +253,7 @@ async function getInformationsForGenerateKmlFile(productIDs,nurEinKML) {
 
     }
   } catch (error) {
-    console.log('Ouch!', error);
+    console.error('Ouch!', error);
   } finally {
     if (connection) {
       await connection.end();
@@ -314,6 +348,44 @@ async function getFlächenNachBearbeitungsID(BEARBEITUNGSARTID) {
     WHERE b.BEARBEITUNGSARTID = ?
     ORDER BY P.KUNDENNUMMER, fc.ARTIKELNR, fc.POSITIONSPUNKT
     `, [BEARBEITUNGSARTID]);
+
+    return rows;
+  } catch (error) {
+    console.error('Ouch!', error);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getFlächenNachBearbeitungsIDZuZiehen(BEARBEITUNGSARTID, PROBENSTATUS) {
+  let connection;
+  try {
+    connection = await mysql.createConnection(config);
+
+    const [rows] = await connection.execute(`
+    SELECT  DISTINCT  fc.ARTIKELNR, fc.KUNDENNUMMER, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG, fc.POSITIONSPUNKT, b.ABDATUM,
+    CASE WHEN PP.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_nmin,
+    CASE WHEN PSmin.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_smin,
+    CASE WHEN PHumus.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_humus,
+    CASE WHEN PCN.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_cn,
+    P.FLAECHENNAME, P.STARTDATUM, P.FLEACHENART, P.KUNDENNUMMER, P.BEARBEITUNGSARTID,
+    PEP.PROBENSTATUS
+    FROM FLEACHENKOORDINATE fc
+    JOIN PRODUKT P ON P.ARTIKELNR = fc.ARTIKELNR AND P.KUNDENNUMMER = fc.KUNDENNUMMER
+    JOIN BEARBEITUNGSART b on P.BEARBEITUNGSARTID = b.BEARBEITUNGSARTID
+    JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR AND P.KUNDENNUMMER = PEP.KUNDENNUMMER
+    JOIN BESTELLUNG_ENTHAELT_PRODUKT wp ON wp.ARTIKELNR = P.ARTIKELNR and wp.KUNDENNUMMER = wp.KUNDENNUMMER
+    JOIN BESTELLUNG w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
+    JOIN KUNDE k ON k.KUNDENNUMMER = w.KUNDENNUMMER
+    LEFT JOIN PRODUKT_ENTHAELT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PP.PROBENARTID = 1
+    LEFT JOIN PRODUKT_ENTHAELT_PROBE PSmin ON P.ARTIKELNR = PSmin.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PSmin.PROBENARTID = 2
+    LEFT JOIN PRODUKT_ENTHAELT_PROBE PHumus ON P.ARTIKELNR = PHumus.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PHumus.PROBENARTID = 3
+    LEFT JOIN PRODUKT_ENTHAELT_PROBE PCN ON P.ARTIKELNR = PCN.ARTIKELNR AND P.KUNDENNUMMER = PP.KUNDENNUMMER AND PCN.PROBENARTID = 4
+    WHERE b.BEARBEITUNGSARTID = ? AND PEP.PROBENSTATUS != ?
+    ORDER BY P.KUNDENNUMMER, fc.ARTIKELNR, fc.POSITIONSPUNKT
+    `, [BEARBEITUNGSARTID,PROBENSTATUS]);
 
     return rows;
   } catch (error) {
@@ -742,7 +814,7 @@ async function createBestellung(userID, anzahlpositionen) {
       console.error('Fehler beim Einfügen: BESTELLUNG ' + error.message);
     }
   } catch (err) {
-    console.log('Ouch!', err);
+    console.error('Ouch!', err);
   } finally {
     if (connection) {
       await connection.end();
@@ -757,7 +829,7 @@ async function anderPasswort(userID, passwordNewInput) {
     await connection.execute('UPDATE MITARBEITER SET PASSWORD = ? WHERE PERSONALNUMMER = ?', [passwordNewInput, userID]);
     await connection.commit();
   } catch (err) {
-    console.log('Ouch!', err);
+    console.error('Ouch!', err);
   } finally {
     if (connection) {
       await connection.end();
@@ -804,7 +876,7 @@ async function registerUserWithFleachen(kundennummer, email, telefonnummer, hash
 
     return { kundennummer };
   } catch (error) {
-    console.log('User could not be registered', error);
+    console.error('User could not be registered', error);
     const statusCode = 123;
     return { kundennummer, statusCode };
   } finally {
@@ -854,7 +926,7 @@ async function getUserByEmail(email) {
       return user*/
       
   } catch (err) {
-    console.log('Error Reading User', err)
+    console.error('Error Reading User', err)
     throw err
   } finally {
     if (conn) { // conn assignment worked, need to close
@@ -884,7 +956,7 @@ async function getUserById(id) {
     return user;
       
   } catch (err) {
-    console.log('Error Reading User', err)
+    console.error('Error Reading User', err)
     throw err
   } finally {
     // Verbindung schließen, wenn du fertig bist
@@ -892,44 +964,12 @@ async function getUserById(id) {
   }
 }
 
-/*async function getfleachenFromUser(userID) {
-  let connection;
-  let fleachen;
-
-  try {
-    connection = await mysql.createConnection(config);
-
-    fleachen = await connection.execute(`
-      SELECT DISTINCT fc.ARTIKELNR, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG, fc.POSITIONSPUNKT
-      FROM FLEACHENKOORDINATE fc
-      JOIN PRODUKT p ON p.ARTIKELNR = fc.ARTIKELNR
-      JOIN WARENKORB_ENTHÄLT_PRODUKT wp ON wp.ARTIKELNR = p.ARTIKELNR
-      JOIN WARENKORB w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
-      JOIN KUNDE k ON k.KUNDENNUMMER = w.KUNDENNUMMER
-      WHERE k.KUNDENNUMMER = ?
-      ORDER BY fc.ARTIKELNR, fc.POSITIONSPUNKT
-    `, [userID]);
- 
-    return fleachen[0];
-  } catch (err) {
-    console.error('Ouch!', err); 
-  } finally {
-    if (connection) {
-      await connection.end();
-    }
-  }
-}*/
 
 async function beiEinemKundenDieFleachenHinzufügen(uebergebeneInformation) {
   let connection;
 
   try {
     connection = await mysql.createConnection(config);
-
-
-    //console.log(JSON.stringify(uebergebeneInformation,null,2))
-
-    
 
     for (const fleachenInformationen of uebergebeneInformation) {
         if (fleachenInformationen.productid === 'undefinedundefinedundefined' || fleachenInformationen.productid ==='undefinedundefined') {
@@ -943,12 +983,13 @@ async function beiEinemKundenDieFleachenHinzufügen(uebergebeneInformation) {
         }
 
 
-
-
-
           await connection.execute("INSERT INTO PRODUKT (ARTIKELNR, FLAECHENNAME, preis, FOTO, FLEACHENART, Kundennummer, BEARBEITUNGSARTID) VALUES (?, ?, 7, ?, ?, ?, ?)",
             [fleachenInformationen.productid, fleachenInformationen.flaechenname, fleachenInformationen.imageElement, fleachenInformationen.fleachenart, fleachenInformationen.USERID, fleachenInformationen.selectedOptionWinterung]);
 
+          
+          await connection.execute("UPDATE produkt SET FLAECHENNAME = REPLACE(FLAECHENNAME, '�', '?')");
+
+        
 
           try{
   
@@ -988,7 +1029,7 @@ async function beiEinemKundenDieFleachenHinzufügen(uebergebeneInformation) {
         ]);
 
       }  catch (error){
-        console.log('HIER ')
+        console.error('HIER ')
       }
     
     } 
@@ -1000,7 +1041,7 @@ async function beiEinemKundenDieFleachenHinzufügen(uebergebeneInformation) {
   } catch (error) {
     
 
-    console.log('Ouch!', error);
+    console.error('Ouch!', error);
   } finally {
     if (connection) {
       await connection.end();
@@ -1085,6 +1126,8 @@ async function beiMehrerenKundenDieFleachenHinzufügen(res, uebergebeneInformati
         await connection.execute("INSERT INTO PRODUKT (ARTIKELNR, FLAECHENNAME, preis, FOTO, FLEACHENART, Kundennummer, BEARBEITUNGSARTID) VALUES (?, ?, 7, ?, ?, ?, ?)",
         [fleachenInformationen.productid, fleachenInformationen.flaechenname, fleachenInformationen.imageElement, fleachenInformationen.fleachenart, fleachenInformationen.USERID, fleachenInformationen.selectedOptionWinterung]);
 
+        await connection.execute("UPDATE produkt SET FLAECHENNAME = REPLACE(FLAECHENNAME, '�', '?')");
+
 
         await connection.execute("INSERT INTO PRODUKT_ENTHAELT_TIEFE (ARTIKELNR, TIEFENID, KUNDENNUMMER) VALUES (?, ?, ?)",
         [fleachenInformationen.productid, fleachenInformationen.tiefenValue, fleachenInformationen.USERID]);
@@ -1129,7 +1172,7 @@ async function beiMehrerenKundenDieFleachenHinzufügen(res, uebergebeneInformati
 
     return 100; // Erfolg HTTP-Statuscode
   } catch (err) {
-    console.log('Ouch!', err);
+    console.error('Ouch!', err);
     return 123; // Interner Serverfehler HTTP-Statuscode
   } finally {
     if (connection) {
@@ -1153,6 +1196,7 @@ async function getkundenDatenVomAusgewaehltenUser(userID) {
         KUNDE.TELEFONNUMMER,
         KUNDE.GEBURTSDATUM,
         KUNDE.PASSWORD,
+        KUNDE.GEODATENGEBERID,
         ADRESSE.ORT,
         ADRESSE.POSTLEITZAHL,
         ADRESSE.STRASSE,
@@ -1202,7 +1246,7 @@ async function getUpdateDatenVomKunden(kundennummer, vorname, nachname, email, t
 
     await connection.commit();
   } catch (err) {
-    console.log('Ouch!', err);
+    console.error('Ouch!', err);
   } finally {
     if (connection) {
       await connection.end();
@@ -1223,7 +1267,7 @@ async function kundenzumloeschen(kundennummerArray) {
     }
     await connection.commit();
   } catch (err) {
-    console.log('Ouch!', err);
+    console.error('Ouch!', err);
   } finally {
     if (connection) {
       await connection.end();
@@ -1249,7 +1293,7 @@ async function changeNeunzigCm(productId,kundennummer,checkedNeunzig) {
 
     await connection.commit();
   } catch (err) {
-    console.log('Ouch!', err);
+    console.error('Ouch!', err);
   } finally {
     if (connection) {
       await connection.end();
@@ -1279,7 +1323,75 @@ async function getProductIDs(customerNames) {
     return productIDs
 
   } catch (err) {
-    console.log('Ouch!', err);
+    console.error('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getDocumentInformation(selectedProducts) {
+  let connection;
+
+  var info = {kundenInformation: [],fleachenInformationen: []}
+
+  try {
+
+    connection = await mysql.createConnection(config);
+    const result = await connection.execute("SELECT *, KHA.KUNDENNUMMER AS KUNDENNUMER  FROM KUNDE JOIN KUNDE_HAT_ADRESSE KHA ON KUNDE.KUNDENNUMMER = KHA.KUNDENNUMMER WHERE KHA.KUNDENNUMMER  = ?;    ", [selectedProducts[0][0]]);
+    
+    info.kundenInformation = result[0][0]
+
+
+
+    for (var selectedProduct of selectedProducts){
+
+      connection = await mysql.createConnection(config);
+      const [result2] = await connection.execute("SELECT PRODUKT.*, PET.TIEFENID FROM PRODUKT JOIN PRODUKT_ENTHAELT_TIEFE PET ON PRODUKT.ARTIKELNR = PET.ARTIKELNR AND PRODUKT.KUNDENNUMMER = PET.KUNDENNUMMER where PRODUKT.KUNDENNUMMER= ? AND PRODUKT.ARTIKELNR = ?", [selectedProduct[0],selectedProduct[1]]);
+      info.fleachenInformationen.push(result2[0])
+    } 
+    return info
+  } catch (err) {
+    console.error('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getZweitanschrift() {
+  let connection;
+  try {
+
+    connection = await mysql.createConnection(config);
+    
+    const result = await connection.execute("SELECT * FROM ZWEITANSCHRIFT");
+  
+    return result[0]
+
+  } catch (err) {
+    console.error('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getZweitanschriftInformationLetsGo(zweitanschrift) {
+  let connection;
+  try {
+
+    connection = await mysql.createConnection(config);
+    
+    const result = await connection.execute("SELECT * FROM ZWEITANSCHRIFT WHERE ID = ?",[zweitanschrift]);
+  
+    return result[0][0]
+
+  } catch (err) {
+    console.error('Ouch!', err);
   } finally {
     if (connection) {
       await connection.end();
@@ -1288,10 +1400,12 @@ async function getProductIDs(customerNames) {
 }
 
 
+
 module.exports = {
   getUserByEmail,
   getUserById,
   getfleachenFromAllUser,
+  getfleachenFromAllUserZuZiehen,
   getKundendaten,
   getKundendatenDieZuZiehenSind,
   getMitarbeiterdaten,
@@ -1310,5 +1424,8 @@ module.exports = {
   ProbeWurdeGezogen,
   getUpdateDatenVomKunden,
   kundenzumloeschen,
-  getProductIDs
+  getProductIDs,
+  getDocumentInformation,
+  getZweitanschrift,
+  getZweitanschriftInformationLetsGo
 }
