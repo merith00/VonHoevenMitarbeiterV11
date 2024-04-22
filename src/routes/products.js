@@ -744,7 +744,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
 
           var schlagBez = getFirstNonNull([feature.properties.SCHLNAME, feature.properties.name, feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM, SCHLAG_NAME,feature.properties.name],'NAME');
 
-          var FleachenID = getFirstNonNull([feature.properties.SCHLNR+''+feature.properties.PRNR_ZAHL,feature.properties.PRNR_ZAHL,feature.properties.BU_Schlnr,feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID, SCHLAG_NR],'ID');
+          var FleachenID = getFirstNonNull([feature.properties.PRNR_ZAHL,feature.properties.SCHLNR+''+feature.properties.PRNR_ZAHL,feature.properties.BU_Schlnr,feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID, SCHLAG_NR],'ID');
           
 
           try{
@@ -859,17 +859,32 @@ function getFirstNonNull(values,art) {
           } 
         }
       }
-  
-      if(art==='NAME'){
-        if(isNaN(parseInt(value))){
+
+      if(hatDoppelteEintraege){
+        if(art==='NAME'){
+          if(isNaN(parseInt(value))){
+            return value;
+          }
+        } else {
           return value;
         }
-      } else {
-        return value;
       }
     }
   }
   return null;
+}
+
+function hatDoppelteEintraege(array) {
+  var zähler = {};
+
+  for (var i = 0; i < array.length; i++) {
+      var eintrag = array[i];
+      if (zähler[eintrag]) {
+          return false;
+      }
+      zähler[eintrag] = true;
+  }
+  return true;
 }
 
 async function createTheBestellung(userid,anzahlpositionen){
