@@ -39,6 +39,7 @@ block content
                   table#example.table.table-striped.table-responsive-sm
                     thead
                       tr.accent-backgroundcolor.titelTR
+                        td.secondary-color(scope="col") Nr.
                         td.secondary-color(scope="col") Name
                         td.secondary-color(scope="col") Fläche
                         td.secondary-color(scope="col") 60cm
@@ -53,10 +54,8 @@ block content
                     tbody
                       each product in UserCart.productsAlle
                         tr.table-secondary
-                          - if (product.FLAECHENNAME === null || product.FLAECHENNAME === "")
-                              td(name=product.ARTIKELNR)= product.ARTIKELNR
-                          - else 
-                              td(name=product.ARTIKELNR)= product.ARTIKELNR +","+ product.FLAECHENNAME
+                          td(name=product.ARTIKELNR)= product.ARTIKELNR
+                          td(name=product.FLAECHENNAME)= product.FLAECHENNAME 
                           td.bestellung
                             img(style='width:auto; max-height:20px' name = 'imgFlaeche'+product.ARTIKELNR, src=product.FOTO, alt='Fleache')
                           td.tdright
@@ -321,6 +320,7 @@ block content
                 <table id="example" class="table table-striped table-responsive-sm">
                   <thead>
                     <tr class="accent-backgroundcolor titelTR">
+                      <td class="secondary-color" scope="col">Nr.</td>
                       <td class="secondary-color" scope="col">Name</td>
                       <td class="secondary-color" scope="col">Fläche</td>
                       <td class="secondary-color" scope="col">60cm</td>
@@ -356,7 +356,8 @@ block content
           // Neue Daten hinzufügen
           containerHTML += `
             <tr class="table-secondary">
-              <td name=${product.ARTIKELNR} >${product.ARTIKELNR } , ${product.FLAECHENNAME }</td>
+              <td name=${product.ARTIKELNR} >${product.ARTIKELNR }</td>
+              <td name=${product.FLAECHENNAME} >${product.FLAECHENNAME }</td>
               <td class="bestellung">
                 <img style="width: auto; max-height: 20px;" name="imgFlaeche${product.ARTIKELNR}" src="${product.FOTO }" alt="Fläche">
               </td>

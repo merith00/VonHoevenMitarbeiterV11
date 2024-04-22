@@ -19,14 +19,14 @@ block content
                                 td 
                                     .form-check
                                         input.form-check-input(type='radio', name='winterung', id='filterWinterung' , checked)
-                                        label.form-check-label(for='winterung2') Winterung
+                                        label.form-check-label(for='winterung2') Frühjahr
                             tr.table-light
                                 td 
                                     .form-check
                                         input.form-check-input(type='radio', name='winterung' , id='filterFSommerung', unchecked)
-                                        label.form-check-label(for='winterung2') Frühe Sommerung
-                            tr.table-light
-                                td 
+                                        label.form-check-label(for='winterung2') Sommer
+                            //tr.table-light
+                                --td 
                                     .form-check
                                         input.form-check-input(type='radio', name='winterung', id='filterSSommerung', unchecked)
                                         label.form-check-label(for='winterung2') Späte Sommerung
@@ -39,7 +39,7 @@ block content
                             tr.table-light
                                 td  <sup>N</sup><sub>min</sub>
                                 td
-                                    input(type='checkbox', name='filterNmin', value='1', checked) 
+                                    input(type='checkbox', name='filterNmin', value='1', checked disabled) 
                             tr.table-light
                                 td  <sup>S</sup><sub>min</sub>
                                 td

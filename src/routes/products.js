@@ -728,12 +728,27 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
         var uebergebeneDaten = []
 
         data.features.forEach(feature => {          
-          var SCHLAG_NR = null, SCHLAG_NAME = null
+          var SCHLAG_NR = null; var SCHLAG_NAME;
 
           try{
-              SCHLAG_NAME = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '<BR>' , '-')
-              SCHLAG_NR = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '-', null)
+              SCHLAG_NAME = feature.properties.description
           }catch(error){}
+
+          try{
+            if(SCHLAG_NAME === null || SCHLAG_NAME === undefined){
+              SCHLAG_NAME = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '<BR>' , '-')
+            }
+          }catch(error){}
+
+          try{
+            
+            SCHLAG_NR = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '-', null)
+        }catch(error){}
+
+          console.log('value ' + feature.properties.description.value)
+          console.log('nur discripton ' + feature.properties.description)
+
+
 
           try{
             if(SCHLAG_NAME === null || SCHLAG_NAME === undefined){
@@ -744,7 +759,7 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
 
           var schlagBez = getFirstNonNull([feature.properties.SCHLNAME, feature.properties.name, feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM, SCHLAG_NAME,feature.properties.name],'NAME');
 
-          var FleachenID = getFirstNonNull([feature.properties.PRNR_ZAHL,feature.properties.SCHLNR+''+feature.properties.PRNR_ZAHL,feature.properties.BU_Schlnr,feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID, SCHLAG_NR],'ID');
+          var FleachenID = getFirstNonNull([feature.properties.PRNR_ZEICH ,feature.properties.PRNR_ZAHL,feature.properties.SCHLNR+''+feature.properties.PRNR_ZAHL,feature.properties.BU_Schlnr,feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID, SCHLAG_NR],'ID');
           
 
           try{
