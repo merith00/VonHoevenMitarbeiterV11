@@ -19,6 +19,7 @@ const getProductIDs = require('../database/oracle').getProductIDs
 const getDocumentInformation = require('../database/oracle').getDocumentInformation
 const getZweitanschrift = require('../database/oracle').getZweitanschrift
 const getZweitanschriftInformationLetsGo = require('../database/oracle').getZweitanschriftInformationLetsGo
+const getChangeColor = require('../database/oracle').getChangeColor
 
 
 
@@ -239,9 +240,7 @@ router.get('/:category', async (req,res)=>{
       const kundenDatenVomAusgewaehltenUser = await getkundenDatenVomAusgewaehltenUser(userID)
       const zweitanschrift = await getZweitanschrift(); 
       var hatkeinenWarenkorb = false;
-      if(cartFromUser.products.length == 0){
-        hatkeinenWarenkorb = true;
-      }
+
 
       setKundenID(userID)
       const FleachenFromUserBestellt = await getFleachenFromUserBestellt(userID)
@@ -277,7 +276,7 @@ async function InfoToKMLFile(infoProductIDs, res) {
     const produktinfo = info.produktinfo[0];
     const flaecheninfo = info.flaecheninfo;
     var ersteZeile = produktinfo.FLAECHENNAME;
-    if(produktinfo.TIEFE === 90){
+    if(produktinfo.TIEFE === 60){
       ersteZeile = ersteZeile + "= 60cm" 
     } 
     if(aktKundennummer != produktinfo.KUNDENNUMMER && firstRunde){
@@ -417,6 +416,18 @@ router.put('/ProbeWurdeGezogen', async (req,res) => {
     const productIDs = req.body.productIDs;
     try {
       await ProbeWurdeGezogen(productIDs)
+      res.sendStatus(200)
+    } catch (error) {
+      console.error('Fehler:', error);
+    }
+  } 
+});
+
+router.put('/changeColor', async (req,res) => {
+  if(req.isAuthenticated()){
+    const userID = req.body.userID;
+    try {
+      await getChangeColor(userID)
       res.sendStatus(200)
     } catch (error) {
       console.error('Fehler:', error);

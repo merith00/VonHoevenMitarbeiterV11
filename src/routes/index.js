@@ -42,7 +42,7 @@ router.post('/login', passport.authenticate('local', {
   failureRedirect: '/',
   failureFlash: true,
 }), (req, res) => {
-  res.redirect('/products/9202');
+  res.redirect('/cart');
 });
 
 router.delete('/logout', function(req, res, next) {

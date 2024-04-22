@@ -1,4 +1,3 @@
-
 $(document).ready(function (){
   $('#example').DataTable();
 });
@@ -138,6 +137,7 @@ function ProbeWurdeGezogen(dateValue,userID) {
   const selectedProducts = [];
   const rows = document.querySelectorAll('tr');
 
+
   for (let index = 1; index < rows.length; index++) {
     var EminValue = 'n';
     var MangatValue = 'n';
@@ -145,6 +145,8 @@ function ProbeWurdeGezogen(dateValue,userID) {
     var CheckboxCnValue = 'n';
     const row = rows[index];
     const productNameCell = row.querySelector('td'); // Hier wird das <td>-Element ausgewählt
+
+    console.log(productNameCell)
     const productIdRow = productNameCell.getAttribute('name'); // Hier wird der Wert des "name"-Attributs extrahiert
 
     const neuBeantragenCheckbox = document.querySelector('input[name=neuBeantragen'+productIdRow+']');
@@ -235,6 +237,7 @@ function funktionFleacheSollBearbeitetWerden(dateValue, userid) {
     var CheckboxCnValue = 'n';
     const row = rows[index];
     const productNameCell = row.querySelector('td'); // Hier wird das <td>-Element ausgewählt
+    console.log(productNameCell)
     const productIdRow = productNameCell.getAttribute('name'); // Hier wird der Wert des "name"-Attributs extrahiert
 
     const neuBeantragenCheckbox = document.querySelector('input[name=neuBeantragen'+productIdRow+']');
@@ -242,6 +245,10 @@ function funktionFleacheSollBearbeitetWerden(dateValue, userid) {
     const EminCheckbox = document.querySelector('input[name=CheckboxEmin'+productIdRow+']');
     const StickstoffCheckbox = document.querySelector('input[name=CheckboxStickstoff'+productIdRow+']');
     const CheckboxCn = document.querySelector('input[name=CheckboxCn'+productIdRow+']');
+
+    console.log(productIdRow)
+
+    console.log(EminCheckbox)
 
 
 
@@ -305,140 +312,6 @@ function funktionFleacheSollBearbeitetWerden(dateValue, userid) {
 
 }
 
-
-var map = L.map('map').setView([52.849226, 7.913939], 13); // Startpunkt-Koordinaten einstellen
-var flaechenID = 0;
-var coordinates = []; // Hier werden die Koordinaten für die aktuelle Fläche gesammelt
-
-if(coordinatesArrayBestellt.length > 0){ 
-
-  var minLat = Number.POSITIVE_INFINITY;
-  var maxLat = Number.NEGATIVE_INFINITY;
-  var minLng = Number.POSITIVE_INFINITY;
-  var maxLng = Number.NEGATIVE_INFINITY;
-
-  for (var i = 0; i < coordinatesArrayBestellt.length; i++) {
-      var latitude = coordinatesArrayBestellt[i].FKOORDINATENIDLAT;
-      var longitude = coordinatesArrayBestellt[i].FKOORDINATENIDLNG;
-
-      minLat = Math.min(minLat, latitude);
-      maxLat = Math.max(maxLat, latitude);
-      minLng = Math.min(minLng, longitude);
-      maxLng = Math.max(maxLng, longitude);
-  }
-
-
-
-
-  var centerLat = (minLat + maxLat) / 2;
-  var centerLng = (minLng + maxLng) / 2;
-
-
-  var bounds = L.latLngBounds(L.latLng(minLat, minLng), L.latLng(maxLat, maxLng));
-  map.fitBounds(bounds);
-
-}
-
-L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
-  maxZoom: 20,
-  subdomains:['mt0','mt1','mt2','mt3'],
-  attribution: '© Google'
-}).addTo(map);
- 
-
-var colorArt = '#b9f700'
-
-coordinatesArrayBestellt.forEach(function (fleachenStueck) {
-  if (flaechenID === fleachenStueck.ARTIKELNR) {
-      coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
-      if(fleachenStueck.PROBENSTATUS === 1){
-        colorArt = 'red'
-      } else {
-        colorArt = '#b9f700'
-      }
-  } else {                
-      if (coordinates.length > 2) {
-          var polygon = L.polygon(coordinates, { 
-            color: colorArt, 
-            fillColor: colorArt, 
-            fillOpacity: 0.6 ,     
-            info: flaechenID }).addTo(map);
-
-        polygon.on('click', function () {
-            var info = this.options.info;
-            const neuBeantragenCheckbox = document.querySelector('input[name=neuBeantragen'+info+']');
-
-            if (neuBeantragenCheckbox.checked) {
-              neuBeantragenCheckbox.checked = false;                        
-            } else {
-              neuBeantragenCheckbox.checked = true;
-            }                    
-        });
-
-      }
-
-      flaechenID = fleachenStueck.ARTIKELNR;
-      coordinates = [
-          [fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG],
-      ];
-  }
-    });
-
-// Zum Schluss das letzte Polygon zeichnen (falls vorhanden)
-if (coordinates.length > 2) {
-  var polygon = L.polygon(coordinates, { 
-    color: colorArt, 
-    fillColor: colorArt, 
-    fillOpacity: 0.4 ,     
-    info: flaechenID }).addTo(map);
-
-    polygon.on('click', function () {
-      var info = this.options.info;
-      const neuBeantragenCheckbox = document.querySelector('input[name=neuBeantragen'+info+']');
-
-      
-      if (neuBeantragenCheckbox.checked) {
-        neuBeantragenCheckbox.checked = false;                        
-      } else {
-        neuBeantragenCheckbox.checked = true;
-      }                    
-  });
-}
-
-flaechenID = 0;
-coordinates = []; // Hier werden die Koordinaten für die aktuelle Fläche gesammelt
-
-
-// Zum Schluss das letzte Polygon zeichnen (falls vorhanden)
-if (coordinates.length > 2) {
-  L.polygon(coordinates, { color: 'blue', fillColor: 'blue', fillOpacity: 0.4 }).addTo(map);
-}
-var drawnItems = new L.FeatureGroup();
-map.addLayer(drawnItems);
-
-var drawControl = new L.Control.Draw({
-  draw: {
-    polygon: {
-      shapeOptions: {
-        color: 'blue'
-      },
-      allowIntersection: false,
-      drawError: {
-        color: 'orange',
-        timeout: 1000
-      },
-      showArea: true
-    },
-    polyline: false,
-    circle: false,
-    marker: false,
-    circlemarker: false
-  },
-  edit: {
-    featureGroup: drawnItems,
-    remove: true
-  }
-});
 
 
 function handleResponse(status) {

@@ -22,9 +22,6 @@ filterSSommerung.addEventListener('change', setUpdateMap);
 
 nurzuZiehen.addEventListener('change', setUpdateMap);
 
-
-
-
 function setUpdateMap(){
     mapLoeschen();
 
@@ -116,12 +113,13 @@ function coordinatesArrayDurchlaufen(fleachenStueck){
             beprobenAb: fleachenStueck.ABDATUM,
             nutzung: fleachenStueck.FLEACHENART,
             schlagBz: fleachenStueck.FLAECHENNAME,
+            kundenname: fleachenStueck.VORNAME + " " + fleachenStueck.NACHNAME,
             nminGzogen: fleachenStueck.enthält_nmin,
             sminGzogen: fleachenStueck.enthält_smin,
             humusGzogen: fleachenStueck.enthält_humus,
             cnGzogen: fleachenStueck.enthält_cn,
         };
-        setColor(fleachenStueck.PROBENSTATUS);
+        setColor(fleachenStueck.PROBENSTATUS,fleachenStueck.FLAECHENFARBE);
     } else {
         setCoordinates(coordinates, infos);
         flaechenID = fleachenStueck.ARTIKELNR;
@@ -134,13 +132,15 @@ function coordinatesArrayDurchlaufen(fleachenStueck){
 
 }
 
-function setColor(probenstatus){
+function setColor(probenstatus, fleachenfarbe){
     if (probenstatus === 1) {
-        colorArt = 'red';
+        colorArt = fleachenfarbe; //fleachenfarbe;
     } else {
         colorArt = '#b9f700';
     }
 }
+
+
 
 function setCoordinates(coordinates, infos){
     if (coordinates.length > 2 && !dargestellteFleachen.includes([infos.probenNr,infos.kundenNr]) ) {
@@ -188,6 +188,7 @@ function setCoordinates(coordinates, infos){
             document.getElementById('beprobenAb').textContent = datum;
             document.getElementById('nutzung').textContent = info.nutzung;
             document.getElementById('schlagBz').textContent = info.schlagBz;
+            document.getElementById('kundenname').textContent = info.kundenname;
             document.getElementById('nminGzogen').textContent = info.nminGzogen;
             document.getElementById('sminGzogen').textContent = info.sminGzogen;
             document.getElementById('humusGzogen').textContent = info.humusGzogen;
