@@ -3,6 +3,8 @@ if (process.env.NODE_ENV !== 'production'){
 }
 var createError = require('http-errors');
 var express = require('express');
+
+
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -22,6 +24,8 @@ var productsRouter = require('./routes/products');
 var app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method'))
+app.use(express.json({ limit: '10mb' }));
+
 //Setup Passport
 
 initializePassport(passport,getUserByEmail,getUserById)
