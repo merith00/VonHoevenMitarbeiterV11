@@ -730,46 +730,46 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
         data.features.forEach(feature => {          
           var SCHLAG_NR = null; var SCHLAG_NAME;
 
-          try{
-              SCHLAG_NAME = feature.properties.description
-          }catch(error){}
+          try {
+            SCHLAG_NAME = feature.properties.description
+          } catch(error){"Discription war nicht richtig"}
 
-          try{
+          console.log('nur discripton ' + SCHLAG_NAME)
+
+
+          try {
             if(SCHLAG_NAME === null || SCHLAG_NAME === undefined){
               SCHLAG_NAME = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '<BR>' , '-')
             }
-          }catch(error){}
+          } catch(error){}
 
-          try{
-            
+          try {
             SCHLAG_NR = getDataFromDiscription(feature.properties.description.value, 'SCHLAG=' , '-', null)
-        }catch(error){}
-
-          console.log('value ' + feature.properties.description.value)
-          console.log('nur discripton ' + feature.properties.description)
+          } catch(error){}
 
 
-
-          try{
+          try {
             if(SCHLAG_NAME === null || SCHLAG_NAME === undefined){
-              SCHLAG_NAME = feature.properties.description
+              SCHLAG_NAME = feature.description
             }
-          }catch(error){}
+          } catch(error){}
 
+          if(SCHLAG_NAME === null || SCHLAG_NAME === undefined){
+            var schlagBez = getFirstNonNull([feature.properties.SCHLNAME, feature.properties.name, feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM, SCHLAG_NAME,feature.properties.name],'NAME');
+          } else {
+            schlagBez = SCHLAG_NAME
+          }
 
-          var schlagBez = getFirstNonNull([feature.properties.SCHLNAME, feature.properties.name, feature.properties.SCHLAGBEZ, feature.properties.FL_NAME, feature.properties.SCHLAG_NAM, SCHLAG_NAME,feature.properties.name],'NAME');
+          console.log('nicht discripton ' + SCHLAG_NAME)
+
 
           var FleachenID = getFirstNonNull([feature.properties.PRNR_ZEICH ,feature.properties.PRNR_ZAHL,feature.properties.SCHLNR+''+feature.properties.PRNR_ZAHL,feature.properties.BU_Schlnr,feature.properties.SCHLAGNR, feature.properties.SCHLAG_NR, feature.properties.FL_ID, SCHLAG_NR],'ID');
           
-
           try{
             schlagBez = decodeURIComponent(escape(schlagBez));
           } catch (error){}
-          console.log(schlagBez);
           
           var dateValue = feature.properties.BEPROBENAB;
-
-
           var Kundennummer = getKundenID();
           var NUTZUNG = feature.properties.NUTZUNG
 
@@ -808,6 +808,8 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
             console.error('Fehler: feature.geometry oder feature.geometry.coordinates sind nicht definiert zwqeitee stellse');
           }
 
+
+          console.log('vor request ' + SCHLAG_NAME)
 
           
           const requestData = {

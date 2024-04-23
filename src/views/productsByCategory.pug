@@ -71,7 +71,7 @@ block content
                           - if (product.STARTDATUM && product.statusmangat === 3)
                                 td am #{product.STARTDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit'})}
                           - else 
-                              td ab #{product.ABDATUM.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit'})}
+                              td #{product.BESCHREIBUNG}
                           td.tdright
                             input#neuBeantragen(type='checkbox', name='neuBeantragen'+product.ARTIKELNR, value='1')
       .col

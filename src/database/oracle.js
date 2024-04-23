@@ -129,8 +129,8 @@ async function getfleachenFromAllUser() {
     };
   
     connection = await mysql.createConnection(config);
-    const resultWinterung = await getFlächenNachBearbeitungsID(1, connection);
-    const resultFSommerung = await getFlächenNachBearbeitungsID(2, connection);
+    const resultWinterung = await getFlächenNachBearbeitungsID(4, connection);
+    const resultFSommerung = await getFlächenNachBearbeitungsID(5, connection);
     const resultSSommerung = await getFlächenNachBearbeitungsID(3, connection);
 
     resultsFleachenDaten.winterung = resultWinterung;
@@ -161,8 +161,8 @@ async function getfleachenFromAllUserZuZiehen() {
     };
   
     connection = await mysql.createConnection(config);
-    const resultWinterung = await getFlächenNachBearbeitungsIDZuZiehen(1,3, connection);
-    const resultFSommerung = await getFlächenNachBearbeitungsIDZuZiehen(2,3 ,connection);
+    const resultWinterung = await getFlächenNachBearbeitungsIDZuZiehen(4,3, connection);
+    const resultFSommerung = await getFlächenNachBearbeitungsIDZuZiehen(5,3 ,connection);
     const resultSSommerung = await getFlächenNachBearbeitungsIDZuZiehen(3,3, connection);
 
     resultsFleachenDaten.winterung = resultWinterung;
@@ -300,7 +300,7 @@ async function getBestllungenFromUser(userID) {
     const [result2] = await connection.execute(`
     SELECT
     P.*,
-    B2.ABDATUM,
+    B2.ABDATUM,B2.BESCHREIBUNG,
     CASE WHEN PP.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_mangat,
     CASE WHEN PP.PROBENARTID IS NOT NULL THEN PP.PROBENSTATUS ELSE 0 END AS statusmangat,
     CASE WHEN PE.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_emin,
@@ -334,7 +334,7 @@ async function getBestllungenFromUser(userID) {
     const [result3] = await connection.execute(`
     SELECT
     P.*,
-    B2.ABDATUM,
+    B2.ABDATUM,B2.BESCHREIBUNG,
     CASE WHEN PP.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_mangat,
     CASE WHEN PP.PROBENARTID IS NOT NULL THEN PP.PROBENSTATUS ELSE 0 END AS statusmangat,
     CASE WHEN PE.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_emin,
@@ -374,7 +374,8 @@ async function getBestllungenFromUser(userID) {
 }
 
 
-async function getFlächenNachBearbeitungsID(BEARBEITUNGSARTID) {
+async function 
+getFlächenNachBearbeitungsID(BEARBEITUNGSARTID) {
   let connection;
   try {
     connection = await mysql.createConnection(config);
@@ -462,8 +463,8 @@ async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID) {
     }
     
     const resultAlle = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatumAlle(geoID, connection);
-    const resultWinterung = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID, 1, connection);
-    const resultFSommerung = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID, 2, connection);
+    const resultWinterung = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID, 4, connection);
+    const resultFSommerung = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID,5, connection);
     const resultSSommerung = await getKundenDatenMitGeoDatenDieZuZiehenSindAbdatum(geoID, 3, connection);
 
     resultAbdatum.alle = resultAlle;
@@ -720,8 +721,8 @@ async function getKundenDatenMitGeoDaten(geoID) {
     }
     
     const resultAlle = await getKundenDatenMitGeoDatenAbdatumAlle(geoID, connection);
-    const resultWinterung = await getKundenDatenMitGeoDatenAbdatum(geoID, 1, connection);
-    const resultFSommerung = await getKundenDatenMitGeoDatenAbdatum(geoID, 2, connection);
+    const resultWinterung = await getKundenDatenMitGeoDatenAbdatum(geoID, 4, connection);
+    const resultFSommerung = await getKundenDatenMitGeoDatenAbdatum(geoID, 5, connection);
     const resultSSommerung = await getKundenDatenMitGeoDatenAbdatum(geoID, 3, connection);
 
     resultAbdatum.alle = resultAlle;

@@ -31,8 +31,8 @@ block content
               .col-md-6
                 .form-group
                   select#selectedOption.form-control.form-select(name='selectedOption' onchange='checkSelectedOption(this)')
-                    option(value='1') Lufa
                     option(value='2') CLAAS
+                    option(value='1') Lufa
                     option(value='3') GSAgri 
                     option(value='4') LWK-Niedersachsen
                     option(value='5') Mählmann
@@ -40,9 +40,9 @@ block content
               .col-md-6
                 .form-group
                   select#selectedOptionWinterung.form-control.form-select(name='selectedOptionWinterung')
-                    option(value='1') Ab 01.01 Winterung
-                    option(value='2') Ab 15.02 Frühe Sommerung
-                    option(value='3') Ab 15.03 Späte Sommerung 
+                    option(value='4') Frühling
+                    option(value='5') Sommer
+                    //option(value='3') Ab 15.03 Späte Sommerung 
             .input-group.mb-3
               input.input-group-text(type='file', name='zipFiles', accept=".kml,.geojson,.shp,.zip" multiple)
             // Hier können Sie den Inhalt des Modals hinzufügen
@@ -63,8 +63,8 @@ block content
               .col-md-6
                 .form-group
                   select#selectedOption.form-control.form-select(name='selectedOption' onchange='checkSelectedOption(this)')
-                    option(value='1') Lufa
                     option(value='2') CLAAS
+                    option(value='1') Lufa
                     option(value='3') GSAgri 
                     option(value='4') LWK-Niedersachsen
                     option(value='5') Mählmann
@@ -72,9 +72,9 @@ block content
               .col-md-6
                 .form-group
                   select#selectedOptionWinterung.form-control.form-select(name='selectedOptionWinterung')
-                    option(value='1') Ab 01.01 Winterung
-                    option(value='2') Ab 15.02 Frühe Sommerung
-                    option(value='3') Ab 15.03 Späte Sommerung 
+                    option(value='4') Frühling
+                    option(value='5') Sommer
+                    //option(value='3') Ab 15.03 Späte Sommerung 
             .row
               .col-md-6
                 .form-group
@@ -106,7 +106,7 @@ block content
             .row
               .col-md-6
                 .form-group
-                  input.form-control(type='number' id='kundenid' name='kundenid' placeholder='KundenID' disabled)
+                  input.form-control(type='number' id='kundenid' name='kundenid' placeholder='KundenID')
               .col-md-6
                 .form-group
                   input.form-control(type='password', placeholder='Passwort', name='password', required, autocomplete="off")
@@ -142,10 +142,10 @@ block content
             table.table-striped.table-responsive-sm
               thead
                 tr.accent-backgroundcolor.titelTRAbdatum
-                  td.secondary-color.tab-item.Abdatum.active(scope="col", onClick="changeActiveTab('alle','abdatum')", name="alle") Alle 
-                  td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('winterung','abdatum')", name="winterung") Winterung
-                  td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('fSommerung','abdatum')", name="fSommerung") frühe Sommerung
-                  td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('sSommerung','abdatum')", name="sSommerung") späte Sommerung
+                  td.secondary-color.tab-item.Abdatum.active(scope="col", style="padding: 5px" onClick="changeActiveTab('alle','abdatum')", name="alle") Alle 
+                  td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('winterung','abdatum')", name="winterung") Frühling
+                  td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('fSommerung','abdatum')", name="fSommerung") Sommer
+                  //td.secondary-color.tab-item.Abdatum(scope="col", onClick="changeActiveTab('sSommerung','abdatum')", name="sSommerung") späte Sommerung
           .col-2(style='display: flex; align-items: center;')
             input(type='checkbox', checked=true, id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
             label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
